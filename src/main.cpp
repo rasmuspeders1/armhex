@@ -9,15 +9,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-int main(void) {
-	float radians = 1.1;
-	float result = 0;
-	for(int i = 100000000; i>0; --i)
-	{
-		result = radians + cos(radians);
-		radians = result;
+#include "main.h"
+#include "Hexapod.h"
 
-	}
-        printf("%f",result);
-	return 0;
+int main(void) {
+
+  Hexapod hexapod();
+
+  return 0;
 }
