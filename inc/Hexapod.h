@@ -15,6 +15,9 @@ class Hexapod: public MaestroController
 public:
   Hexapod();
   ~Hexapod(){};
+
+  void Run();
+
 private:
   virtual bool UpdatePositions();
 

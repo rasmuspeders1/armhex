@@ -4,11 +4,14 @@
  *  Created on: Jul 10, 2012
  *      Author: rasmus
  */
-#include "Hexapod.h"
 
-void Hexapod::Hexapod()
+#include <iostream>
+#include "Hexapod.h"
+#include <time.h>
+
+Hexapod::Hexapod()
 {
-  printf("Initializing Hexapod\n");
+  std::cout << "Initializing Hexapod\n";
 }
 
 bool Hexapod::UpdatePositions()
@@ -16,5 +19,20 @@ bool Hexapod::UpdatePositions()
   return true;
 }
 
+void Hexapod::Run()
+{
+  std::cout << "Hexapod running\n";
+  std::vector<unsigned int> positions;
 
+  for(unsigned int i = 0; i<17; ++i)
+  {
+    positions.push_back(1500);
+  }
 
+  if( !setGroupPositions(0, positions))
+  {
+    std::cout<< "Failed to set positions!\n";
+  }
+  usleep(3000000);
+  goHomeAllServos();
+}
