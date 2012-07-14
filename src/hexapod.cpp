@@ -6,8 +6,9 @@
  */
 
 #include <iostream>
-#include "Hexapod.h"
 #include <time.h>
+
+#include "Hexapod.h"
 
 //Define all servo addresses to human readable positions
 #define LR_TIBIA 0
@@ -34,8 +35,8 @@
 #define RF_FEMUR 16
 #define RF_COXA 17
 
-#define GRIPPER 18
-#define GRIPPER_PAN 19
+#define GRIPPER_PAN 18
+#define GRIPPER 19
 
 Hexapod::Hexapod()
 {
@@ -63,6 +64,9 @@ Hexapod::Hexapod()
   setCenterOffset(RF_TIBIA, -40);
   setCenterOffset(RF_FEMUR, 0);
   setCenterOffset(RF_COXA, 60);
+
+  setCenterOffset(GRIPPER, 0);
+  setCenterOffset(GRIPPER_PAN, -50);
 }
 
 Hexapod::~Hexapod()

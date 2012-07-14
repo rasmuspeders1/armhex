@@ -9,6 +9,7 @@
 #define HEXAPOD_H_
 
 #include "MaestroController.h"
+#include "Kinematics.h"
 
 class Hexapod: public MaestroController
 {
