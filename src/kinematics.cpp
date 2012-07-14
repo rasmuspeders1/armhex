@@ -5,7 +5,7 @@
  *      Author: rasmus
  */
 
-#include "Kinematics.h"
+#include "kinematics.h"
 
 Link::Link(float thetaIn, float alphaIn, float aIn, float dIn, std::string &linkNameIn)
 :

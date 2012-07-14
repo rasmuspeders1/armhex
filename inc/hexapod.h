@@ -8,8 +8,8 @@
 #ifndef HEXAPOD_H_
 #define HEXAPOD_H_
 
-#include "MaestroController.h"
-#include "Kinematics.h"
+#include "maestro_controller.h"
+#include "kinematics.h"
 
 class Hexapod: public MaestroController
 {

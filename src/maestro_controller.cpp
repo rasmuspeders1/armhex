@@ -15,7 +15,7 @@
 #include <time.h>
 #include <algorithm>
 
-#include "MaestroController.h"
+#include "maestro_controller.h"
 
 MaestroController::MaestroController()
 {

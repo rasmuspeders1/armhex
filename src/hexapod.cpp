@@ -8,7 +8,7 @@
 #include <iostream>
 #include <time.h>
 
-#include "Hexapod.h"
+#include "hexapod.h"
 
 //Define all servo addresses to human readable positions
 #define LR_TIBIA 0

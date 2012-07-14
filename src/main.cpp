@@ -16,7 +16,7 @@
 #include <sys/time.h>
 
 #include "main.h"
-#include "Hexapod.h"
+#include "hexapod.h"
 
 /*
  * Defines
