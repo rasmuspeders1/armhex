@@ -14,12 +14,14 @@ class Hexapod: public MaestroController
 {
 public:
   Hexapod();
-  ~Hexapod(){};
-
-  void Run();
+  virtual ~Hexapod();
 
 private:
-  virtual bool UpdatePositions();
+  virtual bool Update();
+
+  //Member variable holding the positions of all servos in degrees (floating point value)
+  //The indices are the servo addresses on the MAestro controller.
+  std::vector<float> positions;
 
 };
 
