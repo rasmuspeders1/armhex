@@ -22,6 +22,7 @@
 #include <vector>
 #include <string>
 #include <stdint.h>
+#include <signal.h>
 
 class MaestroController
 {
@@ -64,13 +65,15 @@ class MaestroController
     int serialPortFD;
     struct termios serialPortConfig;
     uint8_t cmdBuf[CMD_BUF_LEN];
-    bool doRun;
+    static bool done;
     std::vector<int> centerOffsets;
 
     int openSerialPort();
     int configureSerialPort();
 
     virtual bool Update() = 0;
+
+    static void sigHandler(int signo){done = true;}
 
 };
 

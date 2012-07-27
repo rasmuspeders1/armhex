@@ -24,6 +24,46 @@ private:
   //The indices are the servo addresses on the MAestro controller.
   std::vector<float> positions;
 
+  kinematics::Body body;
+
+  kinematics::Link lrBodyLink;
+  kinematics::Link lrCoxaLink;
+  kinematics::Link lrFemurLink;
+  kinematics::Link lrTibiaLink;
+
+  kinematics::Link lmBodyLink;
+  kinematics::Link lmCoxaLink;
+  kinematics::Link lmFemurLink;
+  kinematics::Link lmTibiaLink;
+
+  kinematics::Link lfBodyLink;
+  kinematics::Link lfCoxaLink;
+  kinematics::Link lfFemurLink;
+  kinematics::Link lfTibiaLink;
+
+  kinematics::Link rrBodyLink;
+  kinematics::Link rrCoxaLink;
+  kinematics::Link rrFemurLink;
+  kinematics::Link rrTibiaLink;
+
+  kinematics::Link rmBodyLink;
+  kinematics::Link rmCoxaLink;
+  kinematics::Link rmFemurLink;
+  kinematics::Link rmTibiaLink;
+
+  kinematics::Link rfBodyLink;
+  kinematics::Link rfCoxaLink;
+  kinematics::Link rfFemurLink;
+  kinematics::Link rfTibiaLink;
+
+  kinematics::Limb lrLeg;
+  kinematics::Limb lmLeg;
+  kinematics::Limb lfLeg;
+
+  kinematics::Limb rrLeg;
+  kinematics::Limb rmLeg;
+  kinematics::Limb rfLeg;
+
 };
 
 #endif /* HEXAPOD_H_ */

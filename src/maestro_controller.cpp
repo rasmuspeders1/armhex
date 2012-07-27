@@ -17,12 +17,13 @@
 
 #include "maestro_controller.h"
 
+bool MaestroController::done = true;
+
 MaestroController::MaestroController()
 {
   std::cout << "Initializing MaestroController\n";
 
   //Initialize members
-  doRun = false;
 
   //Initialize serialPort name to expected value
   serialPort = "/dev/ttyACM0";
@@ -36,6 +37,14 @@ MaestroController::MaestroController()
 
   //First send "Go Home" command to maestro.
   goHomeAllServos();
+
+  struct sigaction sigAct;
+  sigemptyset(&sigAct.sa_mask);
+  sigAct.sa_flags = 0;
+  sigAct.sa_handler = MaestroController::sigHandler;
+  sigaction(SIGQUIT, &sigAct, 0);
+  sigaction(SIGINT, &sigAct, 0);
+  sigaction(SIGTERM, &sigAct, 0);
 
 }
 
@@ -53,8 +62,10 @@ void MaestroController::Run()
 
   timespec sleepTs;
   sleepTs.tv_sec = 0;
-  doRun = true;
-  while (doRun)
+  done = false;
+
+  std::cout << "\nMaestro Controller starting" << std::endl;
+  while (!done)
   {
     clock_gettime(CLOCK_REALTIME, &beginTs);
     //Call Update method in child class
@@ -65,7 +76,6 @@ void MaestroController::Run()
       std::cout << "Update call from Maestro controller returned false!"
           << std::endl;
 
-      goHomeAllServos();
       break;
     }
 
@@ -89,6 +99,9 @@ void MaestroController::Run()
         ;
     }
   }
+
+  goHomeAllServos();
+  std::cout << "\nMaestro Controller stopping" << std::endl;
 }
 
 int MaestroController::openSerialPort()
@@ -214,7 +227,7 @@ bool MaestroController::setCenterOffset(unsigned int address, int value)
 {
   if(address > 23)
     return false;
-  if(value > MAX_PULSE_WIDTH / 2 || value < -MAX_PULSE_WIDTH / 2)
+  if(value > MAX_PULSE_WIDTH || value < -MAX_PULSE_WIDTH)
     return false;
 
   centerOffsets[address] = value;
