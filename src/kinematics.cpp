@@ -10,7 +10,9 @@
 
 namespace kinematics
 {
-
+  /*
+   * General matrix Implementations
+   */
   TransformationMatrix::TransformationMatrix() :
       Matrix(4, 4)
   {
@@ -44,39 +46,37 @@ namespace kinematics
 
   }
 
+  /*
+   * Link Class Implementation
+   */
   Link::Link()
   {
   }
 
-  Link::Link(Value_t thetaIn, Value_t alphaIn, Value_t aIn, Value_t dIn,
-      const std::string &linkNameIn, int servoAddrIn) :
+  Link::Link(MatrixValue thetaIn, MatrixValue alphaIn, MatrixValue aIn, MatrixValue dIn, std::string linkNameIn, int servoAddrIn) :
       theta_(thetaIn), alpha_(alphaIn), a_(aIn), d_(dIn), link_name_(
           linkNameIn), servo_addr_(servoAddrIn)
   {
     std::cout << "Link <" << link_name_ << "> created" << std::endl;
 
-    cos_alpha_ = cos(alpha_ / (180.0 / M_1_PI));
-    sin_alpha_ = sin(alpha_ / (180.0 / M_1_PI));
-    cos_theta_ = cos(theta_ / (180.0 / M_1_PI));
-    sin_theta_ = sin(theta_ / (180.0 / M_1_PI));
+    cos_alpha_ = cos(alpha_);
+    sin_alpha_ = sin(alpha_);
+    cos_theta_ = cos(theta_);
+    sin_theta_ = sin(theta_);
 
   }
 
-  const TransformationMatrix & Link::getTransformationMatrix(Value_t theta)
+  const TransformationMatrix & Link::update_transformation_matrix(MatrixValue theta)
   {
-    set_theta(theta);
-    return getTransformationMatrix();
-  }
-
-  const TransformationMatrix & Link::getTransformationMatrix()
-  {
-    //Calculate Tranformation matrix for this link with the current theta angle
+    theta_ = theta;
+    cos_theta_ = cos(theta_);
+    sin_theta_ = sin(theta_);
 
     //First Row
     transformation_matrix_[0][0] = cos_theta_;
-    transformation_matrix_[0][1] = -sin_theta_ * cos_alpha_;
-    transformation_matrix_[0][2] = sin_theta_ * sin_alpha_;
-    transformation_matrix_[0][3] = a_ * cos_theta_;
+    transformation_matrix_[1][0] = -sin_theta_ * cos_alpha_;
+    transformation_matrix_[2][0] = sin_theta_ * sin_alpha_;
+    transformation_matrix_[3][0] = a_ * cos_theta_;
 
     //Second Row
     transformation_matrix_[1][0] = sin_theta_;
@@ -96,15 +96,17 @@ namespace kinematics
     transformation_matrix_[3][2] = 0;
     transformation_matrix_[3][3] = 1;
 
+    return get_transformation_matrix();
+  }
+
+  const TransformationMatrix & Link::get_transformation_matrix()
+  {
+
+
     return transformation_matrix_;
   }
 
   Link::~Link()
-  {
-
-  }
-
-  Limb::Limb()
   {
 
   }
@@ -116,20 +118,22 @@ namespace kinematics
 //                          'rm':numpy.matrix([[   0.0], [ -90.0], [   0.0]]),
 //                          'rb':numpy.matrix([[ -85.0], [ -75.0], [   0.0]])
 
-  Limb::Limb(Body bodyIn, Link bodyLinkIn, Link coxaLinkIn, Link femurLinkIn,
-      Link tibiaLinkIn)
+  /*
+   * Limb Implementation
+   */
+  Limb::Limb(const Body &body, Link &body_link, Link &coxa_link, Link &femur_link, Link &tibia_link)
   {
-    body_ = bodyIn;
-    body_link_ = bodyLinkIn;
-    coxa_link_ = coxaLinkIn;
-    femur_link_ = femurLinkIn;
-    tibia_link_ = tibiaLinkIn;
+    body_ = body;
+    body_link_ = body_link;
+    coxa_link_ = coxa_link;
+    femur_link_ = femur_link;
+    tibia_link_ = tibia_link;
 
     //TODO: calculate safe initial position from body and link information. Do this with normal forward kinematics. Need transformation matrix for body.
 
   }
 
-  bool Limb::InverseKinematic(Value_t x, Value_t y, Value_t z)
+  bool Limb::InverseKinematic(MatrixValue x, MatrixValue y, MatrixValue z)
   {
     //Translation Matrix to this point
 
@@ -141,6 +145,9 @@ namespace kinematics
 
   }
 
+  /*
+   * Body Implementation
+   */
   Body::Body()
   {
 
@@ -149,6 +156,55 @@ namespace kinematics
   Body::~Body()
   {
 
+  }
+
+  const TransformationMatrix & Body::update_transformation_matrix(MatrixValue roll, MatrixValue pitch, MatrixValue yaw, MatrixValue x, MatrixValue y, MatrixValue z)
+  {
+    roll_ = roll;
+    pitch_ = pitch;
+    yaw_ = yaw;
+    x_ = x;
+    y_ = y;
+    z_ = z;
+
+    cos_roll_ = cos(roll_);
+    cos_pitch_ = cos(pitch_);
+    cos_yaw_ = cos(yaw_);
+
+    sin_roll_ = sin(roll_);
+    sin_pitch_ = sin(pitch_);
+    sin_yaw_ = sin(yaw_);
+
+    //First Column
+    transformation_matrix_[0][0] = cos_yaw_ * cos_pitch_;
+    transformation_matrix_[1][0] = sin_yaw_ * cos_pitch_;
+    transformation_matrix_[2][0] = -sin_pitch_;
+    transformation_matrix_[3][0] = 0;
+
+    //Second Row
+    transformation_matrix_[0][1] = -cos_roll_ * sin_yaw_ + cos_yaw_ * sin_roll_ * sin_pitch_;
+    transformation_matrix_[1][1] = cos_roll_ * cos_yaw_ + sin_roll_ * sin_pitch_ * sin_yaw_;
+    transformation_matrix_[2][1] = cos_pitch_ * sin_roll_;
+    transformation_matrix_[3][1] = 0;
+
+    //Third Row
+    transformation_matrix_[0][2] = sin_roll_ * sin_yaw_ + cos_roll_ * cos_yaw_ * sin_pitch_;
+    transformation_matrix_[1][2] = -cos_yaw_ * sin_roll_ + cos_roll_ * sin_pitch_ * sin_yaw_;
+    transformation_matrix_[2][2] = cos_roll_ * cos_pitch_;
+    transformation_matrix_[3][2] = 0;
+
+    //Fourth Row
+    transformation_matrix_[0][3] = x_;
+    transformation_matrix_[1][3] = y_;
+    transformation_matrix_[2][3] = z_;
+    transformation_matrix_[3][3] = 1;
+
+    return transformation_matrix_;
+  }
+
+  const TransformationMatrix & Body::get_transformation_matrix()
+  {
+    return transformation_matrix_;
   }
 
 }

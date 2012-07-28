@@ -11,58 +11,60 @@
 #include "maestro_controller.h"
 #include "kinematics.h"
 
-class Hexapod: public MaestroController
+class Hexapod : public MaestroController
 {
-public:
-  Hexapod();
-  virtual ~Hexapod();
+  public:
+    Hexapod();
+    virtual ~Hexapod();
 
-private:
-  virtual bool Update();
+  private:
+    virtual bool Update();
 
-  //Member variable holding the positions of all servos in degrees (floating point value)
-  //The indices are the servo addresses on the MAestro controller.
-  std::vector<float> positions;
+    //Member variable holding the positions of all servos in radians
+    //The indices are the servo addresses on the Maestro controller.
+    std::vector<float> servo_angles_;
 
-  kinematics::Body body;
+    std::vector<float> get_all_servo_angles();
 
-  kinematics::Link lrBodyLink;
-  kinematics::Link lrCoxaLink;
-  kinematics::Link lrFemurLink;
-  kinematics::Link lrTibiaLink;
+    kinematics::Body body;
 
-  kinematics::Link lmBodyLink;
-  kinematics::Link lmCoxaLink;
-  kinematics::Link lmFemurLink;
-  kinematics::Link lmTibiaLink;
+    kinematics::Link lr_body_link_;
+    kinematics::Link lr_coxa_link_;
+    kinematics::Link lr_femur_link_;
+    kinematics::Link lr_tibia_link_;
 
-  kinematics::Link lfBodyLink;
-  kinematics::Link lfCoxaLink;
-  kinematics::Link lfFemurLink;
-  kinematics::Link lfTibiaLink;
+    kinematics::Link lm_body_link_;
+    kinematics::Link lm_coxa_link_;
+    kinematics::Link lm_femur_link_;
+    kinematics::Link lm_tibia_link_;
 
-  kinematics::Link rrBodyLink;
-  kinematics::Link rrCoxaLink;
-  kinematics::Link rrFemurLink;
-  kinematics::Link rrTibiaLink;
+    kinematics::Link lf_body_link_;
+    kinematics::Link lf_coxa_link_;
+    kinematics::Link lf_femur_link_;
+    kinematics::Link lf_tibia_link_;
 
-  kinematics::Link rmBodyLink;
-  kinematics::Link rmCoxaLink;
-  kinematics::Link rmFemurLink;
-  kinematics::Link rmTibiaLink;
+    kinematics::Link rr_body_link_;
+    kinematics::Link rr_coxa_link_;
+    kinematics::Link rr_femur_link_;
+    kinematics::Link rr_tibia_link_;
 
-  kinematics::Link rfBodyLink;
-  kinematics::Link rfCoxaLink;
-  kinematics::Link rfFemurLink;
-  kinematics::Link rfTibiaLink;
+    kinematics::Link rm_body_link_;
+    kinematics::Link rm_coxa_link_;
+    kinematics::Link rm_femur_link_;
+    kinematics::Link rm_tibia_link_;
 
-  kinematics::Limb lrLeg;
-  kinematics::Limb lmLeg;
-  kinematics::Limb lfLeg;
+    kinematics::Link rf_body_link_;
+    kinematics::Link rf_coxa_link_;
+    kinematics::Link rf_femur_link_;
+    kinematics::Link rf_tibia_link_;
 
-  kinematics::Limb rrLeg;
-  kinematics::Limb rmLeg;
-  kinematics::Limb rfLeg;
+    kinematics::Limb lr_leg_;
+    kinematics::Limb lm_leg_;
+    kinematics::Limb lf_leg_;
+
+    kinematics::Limb rr_leg_;
+    kinematics::Limb rm_leg_;
+    kinematics::Limb rf_leg_;
 
 };
 

@@ -8,21 +8,12 @@
 #ifndef MAESTRO_H_
 #define MAESTRO_H_
 
-#define MAX_PULSE_WIDTH 3000
-#define CMD_BUF_LEN 256
-//Update interval. MUST BE BELOW ONE SECOND.
-#define UPDATE_INTERVAL_NSECS 20000000
-
-//ms per degree
-#define DP_RATIO 10
-//angle to pulse width offset. 0 degrees is 600 hundred ms
-#define DP_OFFSET 600
-
 #include <termios.h>
 #include <vector>
 #include <string>
 #include <stdint.h>
 #include <signal.h>
+#include <math.h>
 
 class MaestroController
 {
@@ -38,13 +29,19 @@ class MaestroController
      * @param positions
      * @return result
      */
-    bool setGroupPositions(uint8_t startAddr,
-        std::vector<float> &positions);
+    bool setGroupPositions(uint8_t startAddr, std::vector<float> positions);
 
     /**
      * sends a command to turn of all servos on the controller.
      */
     void goHomeAllServos();
+
+    /**
+     * sends the get errors command to the Maestro and returns the 16 bit error code.
+     */
+    uint16_t get_errors();
+
+    bool send_command_in_buffer(uint16_t len);
 
     /**
      * Starts the Update loop. The Update Callbeck is called every UPDATE_INTERVAL_NSECS nanoseconds.
@@ -60,11 +57,19 @@ class MaestroController
     bool setCenterOffset(unsigned int address, int value);
 
   private:
+    //ms to radians ratio
+    const float DP_RATIO_;
+    //angle to pulse width offset. 0 degrees is 600 hundred ms
+    const float DP_OFFSET_;
+    const float MAX_PULSE_WIDTH_;
+
+    //Update interval. MUST BE BELOW ONE SECOND.
+    const float UPDATE_INTERVAL_NSECS_;
 
     std::string serialPort;
     int serialPortFD;
     struct termios serialPortConfig;
-    uint8_t cmdBuf[CMD_BUF_LEN];
+    uint8_t cmdBuf[256];
     static bool done;
     std::vector<int> centerOffsets;
 
@@ -73,7 +78,10 @@ class MaestroController
 
     virtual bool Update() = 0;
 
-    static void sigHandler(int signo){done = true;}
+    static void sigHandler(int signo)
+    {
+      done = true;
+    }
 
 };
 
