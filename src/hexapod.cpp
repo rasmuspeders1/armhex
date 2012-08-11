@@ -8,6 +8,10 @@
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <iomanip>
+
+#include <termios.h>
+#include <fcntl.h>
 
 #include "hexapod.h"
 
@@ -40,76 +44,124 @@
 #define GRIPPER 19
 
 Hexapod::Hexapod():
-body(kinematics::Body()),
-lr_body_link_(kinematics::Link(150.0 / (180.0 / M_1_PI), 0.0, 55.75, 19.0, "Left rear body link", -1)),
-lr_coxa_link_(kinematics::Link(M_1_PI/4, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Left rear coxa link", 2)),
-lr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Left rear femur link", 1)),
+body_(kinematics::Body()),
+lr_body_link_(kinematics::Link(150.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Left rear body link", -1)),
+lr_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left rear coxa link", 2)),
+lr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left rear femur link", 1)),
 lr_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Left rear tibia link", 0)),
 
-lm_body_link_(kinematics::Link(90.0 / (180.0 / M_1_PI), 0.0, 35.75, 19.0, "Left middle body link", -1)),
-lm_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Left middle coxa link", 8)),
-lm_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Left middle femur link", 7)),
+lm_body_link_(kinematics::Link(90.0 / (180.0 / M_PI), 0.0, 35.75, 19.0, "Left middle body link", -1)),
+lm_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left middle coxa link", 8)),
+lm_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left middle femur link", 7)),
 lm_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Left middle tibia link", 6)),
 
-lf_body_link_(kinematics::Link(30.0 / (180.0 / M_1_PI), 0.0, 35.75, 19.0, "Left front body link", -1)),
-lf_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Left front coxa link", 14)),
-lf_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Left front femur link", 13)),
-lf_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Left front tibia link", 12)),
+lf_body_link_(kinematics::Link(30.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Left front body link", -1)),
+lf_coxa_link_(kinematics::Link(0.0 / (180.0 / M_PI), -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left front coxa link", 14)),
+lf_femur_link_(kinematics::Link(0.0 / (180.0 / M_PI), 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left front femur link", 13)),
+lf_tibia_link_(kinematics::Link(0.0 / (180.0 / M_PI), 0.0, 70.0, 0.0, "Left front tibia link", 12)),
 
-rr_body_link_(kinematics::Link(-150.0 / (180.0 / M_1_PI), 0.0, 55.75, 19.0, "Right rear body link", -1)),
-rr_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Right rear coxa link", 5)),
-rr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Right rear femur link", 4)),
+rr_body_link_(kinematics::Link(-150.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Right rear body link", -1)),
+rr_coxa_link_(kinematics::Link(0.0, 90.0 / (180.0 / M_PI), 11.5, 0.0, "Right rear coxa link", 5)),
+rr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Right rear femur link", 4)),
 rr_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Right rear tibia link", 3)),
 
-rm_body_link_(kinematics::Link(-90.0 / (180.0 / M_1_PI), 0.0, 35.75, 19.0, "Right middle body link", -1)),
-rm_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Right middle coxa link", 11)),
-rm_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Right middle femur link", 10)),
+rm_body_link_(kinematics::Link(-90.0 / (180.0 / M_PI), 0.0, 35.75, 19.0, "Right middle body link", -1)),
+rm_coxa_link_(kinematics::Link(0.0, 90.0 / (180.0 / M_PI), 11.5, 0.0, "Right middle coxa link", 11)),
+rm_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Right middle femur link", 10)),
 rm_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Right middle tibia link", 9)),
 
-rf_body_link_(kinematics::Link(-30.0 / (180.0 / M_1_PI), 0.0, 55.75, 19.0, "Right front body link", -1)),
-rf_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_1_PI), 11.5, 0.0, "Right front coxa link", 17)),
-rf_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_1_PI), 45.0, 0.0, "Right front femur link", 16)),
-rf_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Right front tibia link", 15)),
+rf_body_link_(kinematics::Link(-30.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Right front body link", -1)),
+rf_coxa_link_(kinematics::Link( 0.0 / (180.0 / M_PI), 90.0 / (180.0 / M_PI), 11.5, 0.0, "Right front coxa link", 17)),
+rf_femur_link_(kinematics::Link( 0.0 / (180.0 / M_PI), 180.0 / (180.0 / M_PI), 45.0, 0.0, "Right front femur link", 16)),
+rf_tibia_link_(kinematics::Link( 0.0 / (180.0 / M_PI), 0.0, 70.0, 0.0, "Right front tibia link", 15)),
 
-lr_leg_(kinematics::Limb(body, lr_body_link_, lr_coxa_link_, lr_femur_link_, lr_tibia_link_)),
-lm_leg_(kinematics::Limb(body, lm_body_link_, lm_coxa_link_, lm_femur_link_, lm_tibia_link_)),
-lf_leg_(kinematics::Limb(body, lf_body_link_, lf_coxa_link_, lf_femur_link_, lf_tibia_link_)),
+lr_leg_(kinematics::Limb(body_, lr_body_link_, lr_coxa_link_, lr_femur_link_, lr_tibia_link_, "Left Rear Leg")),
+lm_leg_(kinematics::Limb(body_, lm_body_link_, lm_coxa_link_, lm_femur_link_, lm_tibia_link_, "Left Middle Leg")),
+lf_leg_(kinematics::Limb(body_, lf_body_link_, lf_coxa_link_, lf_femur_link_, lf_tibia_link_, "Left Front Leg")),
 
-rr_leg_(kinematics::Limb(body, rr_body_link_, rr_coxa_link_, rr_femur_link_, rr_tibia_link_)),
-rm_leg_(kinematics::Limb(body, rm_body_link_, rm_coxa_link_, rm_femur_link_, rm_tibia_link_)),
-rf_leg_(kinematics::Limb(body, rf_body_link_, rf_coxa_link_, rf_femur_link_, rf_tibia_link_))
+rr_leg_(kinematics::Limb(body_, rr_body_link_, rr_coxa_link_, rr_femur_link_, rr_tibia_link_, "Right Rear Leg")),
+rm_leg_(kinematics::Limb(body_, rm_body_link_, rm_coxa_link_, rm_femur_link_, rm_tibia_link_, "Right Middle Leg")),
+rf_leg_(kinematics::Limb(body_, rf_body_link_, rf_coxa_link_, rf_femur_link_, rf_tibia_link_, "Right Front Leg"))
 
 {
   std::cout << "Initializing Hexapod\n";
 
   //Configure all servo center offsets
-  setCenterOffset(LR_TIBIA, 800+900);
-  setCenterOffset(LR_FEMUR, -20+900);
-  setCenterOffset(LR_COXA, -20+900);
+  set_center_offset(LR_TIBIA, -100+900+900);
+  set_center_offset(LR_FEMUR, -10+900);
+  set_center_offset(LR_COXA, -20+900);
 
-  setCenterOffset(RR_TIBIA, 80);
-  setCenterOffset(RR_FEMUR, -20+900);
-  setCenterOffset(RR_COXA, -80+900);
+  set_center_offset(RR_TIBIA, 90);
+  set_center_offset(RR_FEMUR, -20+900);
+  set_center_offset(RR_COXA, -80+900);
 
-  setCenterOffset(LM_TIBIA, 880+900);
-  setCenterOffset(LM_FEMUR, 40+900);
-  setCenterOffset(LM_COXA, -20+900);
+  set_center_offset(LM_TIBIA, 880+900);
+  set_center_offset(LM_FEMUR, 40+900);
+  set_center_offset(LM_COXA, -20+900);
 
-  setCenterOffset(RM_TIBIA, 80);
-  setCenterOffset(RM_FEMUR, -20+900);
-  setCenterOffset(RM_COXA, 30+900);
+  set_center_offset(RM_TIBIA, 40);
+  set_center_offset(RM_FEMUR, -20+900);
+  set_center_offset(RM_COXA, 30+900);
 
-  setCenterOffset(LF_TIBIA, -40+900+900);
-  setCenterOffset(LF_FEMUR, -20+900);
-  setCenterOffset(LF_COXA, 80+900);
+  set_center_offset(LF_TIBIA, -150+900+900);
+  set_center_offset(LF_FEMUR, -20+900);
+  set_center_offset(LF_COXA, 80+900);
 
-  setCenterOffset(RF_TIBIA, 100);
-  setCenterOffset(RF_FEMUR, 0+900);
-  setCenterOffset(RF_COXA, 60+900);
+  set_center_offset(RF_TIBIA, 120);
+  set_center_offset(RF_FEMUR, 0+900);
+  set_center_offset(RF_COXA, 60+900);
 
-  setCenterOffset(GRIPPER, 0+900);
-  setCenterOffset(GRIPPER_PAN, -50+900);
+  set_center_offset(GRIPPER, 0+900);
+  set_center_offset(GRIPPER_PAN, -50+900);
 
+  //Open and configure serial port
+  if(openSerialPort() != -1)
+  {
+    configureSerialPort();
+  }
+
+//  kinematics::Matrix A(3,3);
+//  kinematics::Matrix B(3,3);
+//  kinematics::Matrix C(3,1);
+//
+//  A[0][0] = 1;
+//  A[0][1] = 2;
+//  A[0][2] = 3;
+//
+//  A[1][0] = 4;
+//  A[1][1] = 5;
+//  A[1][2] = 6;
+//
+//  A[2][0] = 7;
+//  A[2][1] = 8;
+//  A[2][2] = 9;
+//
+//  B[0][0] = 1;
+//  B[0][1] = 2;
+//  B[0][2] = 3;
+//
+//  B[1][0] = 4;
+//  B[1][1] = 5;
+//  B[1][2] = 6;
+//
+//  B[2][0] = 7;
+//  B[2][1] = 8;
+//  B[2][2] = 9;
+//
+//  C[0][0] = 1;
+//  C[1][0] = 2;
+//  C[2][0] = 3;
+//
+//  (A*B).print();
+//  (A*C).print();
+
+  lf_leg_.InverseKinematic( 85.0, 75.0, 0.0);
+  lm_leg_.InverseKinematic(  0.0, 90.0, 0.0);
+  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
+
+  rf_leg_.InverseKinematic( 85.0, -75.0, 0.0);
+  rm_leg_.InverseKinematic(  0.0, -90.0, 0.0);
+  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
 
 }
 
@@ -120,49 +172,74 @@ Hexapod::~Hexapod()
 
 bool Hexapod::Update()
 {
-  //std::cout << "Controller Update" << std::endl;
-  //get errors from maestro. If error code is larger than 0, an error occured on the meastro and we should exit gracefully.
-//  if(get_errors())
-//  {
-//    return false;
-//  }
+  // Check for errors from maestro servo controller.
+  // abort if bad error.
 
-  setGroupPositions(0, get_all_servo_angles());
+  if(!check_maestro_errors())
+  {
+    return false;
+  }
 
-  usleep(300000);
-  goHomeAllServos();
+  lf_leg_.InverseKinematic( 85.0, 75.0, 0.0);
+  lm_leg_.InverseKinematic(  0.0, 90.0, 0.0);
+  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
 
-  return false;
+  rf_leg_.InverseKinematic( 85.0, -75.0, 0.0);
+  rm_leg_.InverseKinematic(  0.0, -90.0, 0.0);
+  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
+
+  setGroupPositions(0, get_all_leg_servo_angles());
+
+  return true;
 }
 
-std::vector<float> Hexapod::get_all_servo_angles()
+bool Hexapod::check_maestro_errors()
+{
+  uint16_t error_code = GetErrors();
+  switch (error_code) {
+    case 0:
+      //No Errors
+      //std::cout << "Servo controller returned error indication <" << std::hex << std::setw(4) << std::setfill('0') << error_code << ">" << " No errors."<< std::endl;
+      break;
+    case 0x020:
+      std::cout << "Servo controller returned error indication <" << std::hex << std::setw(4) << std::setfill('0') << error_code << ">" << " Serial connection time out error. Ignored."<< std::endl;
+      break;
+    default:
+      std::cout << "Servo controller returned error indication <" << std::hex << std::setw(4) << std::setfill('0') << error_code << ">" << std::endl;
+      return false;
+  }
+
+  return true;
+}
+
+std::vector<float> Hexapod::get_all_leg_servo_angles()
 {
   std::vector<float> servo_positions;
-  servo_positions.resize(20,0);
+  servo_positions.resize(18,0);
 
-  servo_positions[lr_coxa_link_.get_servo_addr()] = lr_coxa_link_.get_theta();
-  servo_positions[lr_femur_link_.get_servo_addr()] = lr_femur_link_.get_theta();
-  servo_positions[lr_tibia_link_.get_servo_addr()] = lr_tibia_link_.get_theta();
+  servo_positions[lr_coxa_link_.get_servo_addr()] = lr_coxa_link_.theta();
+  servo_positions[lr_femur_link_.get_servo_addr()] = lr_femur_link_.theta();
+  servo_positions[lr_tibia_link_.get_servo_addr()] = lr_tibia_link_.theta();
 
-  servo_positions[lm_coxa_link_.get_servo_addr()] = lm_coxa_link_.get_theta();
-  servo_positions[lm_femur_link_.get_servo_addr()] = lm_femur_link_.get_theta();
-  servo_positions[lm_tibia_link_.get_servo_addr()] = lm_tibia_link_.get_theta();
+  servo_positions[lm_coxa_link_.get_servo_addr()] = lm_coxa_link_.theta();
+  servo_positions[lm_femur_link_.get_servo_addr()] = lm_femur_link_.theta();
+  servo_positions[lm_tibia_link_.get_servo_addr()] = lm_tibia_link_.theta();
 
-  servo_positions[lf_coxa_link_.get_servo_addr()] = lf_coxa_link_.get_theta();
-  servo_positions[lf_femur_link_.get_servo_addr()] = lf_femur_link_.get_theta();
-  servo_positions[lf_tibia_link_.get_servo_addr()] = lf_tibia_link_.get_theta();
+  servo_positions[lf_coxa_link_.get_servo_addr()] = lf_coxa_link_.theta();
+  servo_positions[lf_femur_link_.get_servo_addr()] = lf_femur_link_.theta();
+  servo_positions[lf_tibia_link_.get_servo_addr()] = lf_tibia_link_.theta();
 
-  servo_positions[rr_coxa_link_.get_servo_addr()] = rr_coxa_link_.get_theta();
-  servo_positions[rr_femur_link_.get_servo_addr()] = rr_femur_link_.get_theta();
-  servo_positions[rr_tibia_link_.get_servo_addr()] = rr_tibia_link_.get_theta();
+  servo_positions[rr_coxa_link_.get_servo_addr()] = rr_coxa_link_.theta();
+  servo_positions[rr_femur_link_.get_servo_addr()] = rr_femur_link_.theta();
+  servo_positions[rr_tibia_link_.get_servo_addr()] = rr_tibia_link_.theta();
 
-  servo_positions[rm_coxa_link_.get_servo_addr()] = rm_coxa_link_.get_theta();
-  servo_positions[rm_femur_link_.get_servo_addr()] = rm_femur_link_.get_theta();
-  servo_positions[rm_tibia_link_.get_servo_addr()] = rm_tibia_link_.get_theta();
+  servo_positions[rm_coxa_link_.get_servo_addr()] = rm_coxa_link_.theta();
+  servo_positions[rm_femur_link_.get_servo_addr()] = rm_femur_link_.theta();
+  servo_positions[rm_tibia_link_.get_servo_addr()] = rm_tibia_link_.theta();
 
-  servo_positions[rf_coxa_link_.get_servo_addr()] = rf_coxa_link_.get_theta();
-  servo_positions[rf_femur_link_.get_servo_addr()] = rf_femur_link_.get_theta();
-  servo_positions[rf_tibia_link_.get_servo_addr()] = rf_tibia_link_.get_theta();
+  servo_positions[rf_coxa_link_.get_servo_addr()] = rf_coxa_link_.theta();
+  servo_positions[rf_femur_link_.get_servo_addr()] = rf_femur_link_.theta();
+  servo_positions[rf_tibia_link_.get_servo_addr()] = rf_tibia_link_.theta();
 
   return servo_positions;
 }

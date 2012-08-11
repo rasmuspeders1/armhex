@@ -39,9 +39,9 @@ class MaestroController
     /**
      * sends the get errors command to the Maestro and returns the 16 bit error code.
      */
-    uint16_t get_errors();
+    uint16_t GetErrors();
 
-    bool send_command_in_buffer(uint16_t len);
+
 
     /**
      * Starts the Update loop. The Update Callbeck is called every UPDATE_INTERVAL_NSECS nanoseconds.
@@ -54,7 +54,10 @@ class MaestroController
      * @param value
      * @return result
      */
-    bool setCenterOffset(unsigned int address, int value);
+    bool set_center_offset(unsigned int address, int value);
+
+    int openSerialPort(std::string serial_port_dev = "/dev/ttyACM0");
+    int configureSerialPort();
 
   private:
     //ms to radians ratio
@@ -64,23 +67,25 @@ class MaestroController
     const float MAX_PULSE_WIDTH_;
 
     //Update interval. MUST BE BELOW ONE SECOND.
-    const float UPDATE_INTERVAL_NSECS_;
+    const long UPDATE_INTERVAL_NSECS_;
 
-    std::string serialPort;
-    int serialPortFD;
-    struct termios serialPortConfig;
-    uint8_t cmdBuf[256];
-    static bool done;
-    std::vector<int> centerOffsets;
+    std::string serial_port_;
+    int serial_port_FD_;
+    struct termios serial_port_config_;
+    uint8_t serial_buffer_[256];
+    static bool done_;
+    std::vector<int> center_offsets_;
 
-    int openSerialPort();
-    int configureSerialPort();
 
     virtual bool Update() = 0;
 
+    bool SendCommandInBuffer(uint16_t len);
+
+    int ReadToBuffer(uint16_t len);
+
     static void sigHandler(int signo)
     {
-      done = true;
+      done_ = true;
     }
 
 };

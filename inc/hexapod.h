@@ -24,9 +24,11 @@ class Hexapod : public MaestroController
     //The indices are the servo addresses on the Maestro controller.
     std::vector<float> servo_angles_;
 
-    std::vector<float> get_all_servo_angles();
+    std::vector<float> get_all_leg_servo_angles();
 
-    kinematics::Body body;
+    bool check_maestro_errors();
+
+    kinematics::Body body_;
 
     kinematics::Link lr_body_link_;
     kinematics::Link lr_coxa_link_;

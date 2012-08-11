@@ -18,11 +18,6 @@
 #include "main.h"
 #include "hexapod.h"
 
-/*
- * Defines
- */
-#define UPDATE_USECS 20000
-
 int main(void)
 {
 
