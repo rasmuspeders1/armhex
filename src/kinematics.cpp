@@ -266,10 +266,12 @@ namespace kinematics
       tibia_link_(tibia_link),
       limb_name_(name)
   {
+    //std::cout << limb_name_ << std::endl;
+
     //TODO: calculate safe initial position from body and link information. Do this with normal forward kinematics. Need transformation matrix for body.
     if(!InverseKinematic(ForwardKinematic()))
     {
-      std::cout << limb_name_ << " has invalid initial link values!" << std::endl;
+      std::cout << limb_name_ << " initial inverse kinematic calculation failed!" << std::endl;
     }
   }
 
@@ -284,6 +286,8 @@ namespace kinematics
 
   bool Limb::InverseKinematic(const TranslationMatrix &position_global)
   {
+    end_point_position_ = position_global;
+
     //If coxa alpha is < 0 && > -180 femur and tibia joint rotation is reversed.
     MatrixValue_t femur_tibia_theta_correction = 1;
     if(coxa_link_.alpha() < 0 && coxa_link_.alpha() > -180)
@@ -293,6 +297,8 @@ namespace kinematics
 
     //Inverse transformation from global frame to body link frame (coxa joint rotates around z-axis of body link frame).
     TranslationMatrix position_body_link = body_link_.get_transformation_matrix().InverseTransformation() * body_.get_transformation_matrix().InverseTransformation() * position_global;
+
+
 
     //Length from body link to tibia link (End point). Pytagoras -> sqrt(x^2, y^3)
     MatrixValue_t a = sqrtf(position_body_link[0][0] * position_body_link[0][0] + position_body_link[1][0] * position_body_link[1][0]);
@@ -308,8 +314,6 @@ namespace kinematics
     MatrixValue_t b = sqrtf((a - coxa_link_.a()) * (a - coxa_link_.a()) + position_body_link[2][0] * position_body_link[2][0]);
     //std::cout << "b: " << b << std::endl;
 
-    //theta3 = math.acos((b ** 2 - self.link3.a ** 2 - self.link2.a ** 2) / (-2 * self.link3.a * self.link2.a)) * (180 / math.pi) - 180
-
     MatrixValue_t tibia_theta = femur_tibia_theta_correction * (M_PI - acos((b * b - tibia_link_.a() * tibia_link_.a() - femur_link_.a() * femur_link_.a()) / (- 2 * tibia_link_.a() * femur_link_.a())));
     //std::cout << "tibia_theta: " << tibia_theta << std::endl;
 
@@ -318,7 +322,6 @@ namespace kinematics
 
     MatrixValue_t ika2 = acos((-tibia_link_.a() * tibia_link_.a() + femur_link_.a() * femur_link_.a() + b * b) / (2 * femur_link_.a() * b));
     //std::cout << "ika2: " << ika2 << std::endl;
-    //IKA2 = math.acos((-self.link3.a ** 2 + self.link2.a ** 2 + b ** 2) / (2 * self.link2.a * b))
 
     MatrixValue_t femur_theta = femur_tibia_theta_correction * (ika1 + ika2);
     //std::cout << "femur_theta: " << femur_theta << std::endl;

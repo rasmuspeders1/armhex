@@ -30,12 +30,6 @@ MaestroController::MaestroController() :
 {
   std::cout << "Initializing MaestroController\n";
 
-  //Initialize members
-
-  //Initialize serialPort name to expected value
-  //serialPort = "/dev/ttyAMA0";
-  ;
-
   //Initialize centerOffset Vector to zeros
   center_offsets_.assign(24, 0);
 
@@ -146,8 +140,8 @@ int MaestroController::configureSerialPort()
   struct termios original = serial_port_config_;
 
   //Set Baud rates
-  cfsetispeed(&serial_port_config_, B115200);
-  cfsetospeed(&serial_port_config_, B115200);
+  cfsetispeed(&serial_port_config_, B57600);
+  cfsetospeed(&serial_port_config_, B57600);
 
   //No parity bit
   serial_port_config_.c_cflag &= ~PARENB;
@@ -200,9 +194,7 @@ bool MaestroController::SendCommandInBuffer(uint16_t len)
   while (writeResult >= 0 && writtenBytes < len)
   {
     writeResult = write(serial_port_FD_, serial_buffer_, len);
-
     writtenBytes += writeResult;
-
   }
   if(writeResult < 0)
   {
@@ -236,7 +228,7 @@ int MaestroController::ReadToBuffer(uint16_t len)
     {
       last_bytes_read = bytes_read;
     }
-    usleep(10);
+    usleep(100);
   }
   //std::cout << "Loops in receiver " << count << std::endl;
   return bytes_read;
@@ -277,7 +269,7 @@ void MaestroController::goHomeAllServos()
 }
 
 bool MaestroController::setGroupPositions(uint8_t startAddr,
-    std::vector<float> positions)
+    std::vector<double> positions)
 {
   //Start address cannot be larger than 23 on maestro24
   if(startAddr > 23)
@@ -319,16 +311,12 @@ bool MaestroController::setGroupPositions(uint8_t startAddr,
   for (unsigned int i = 0; i < positions.size(); ++i)
   {
     //the meastro operates in quarters of milliseconds.
-    unsigned int target_val = (center_offsets_[startAddr + i] + positions[i] * DP_RATIO_ + DP_OFFSET_);
+    unsigned int target_val = (center_offsets_[startAddr + i] + positions[i] * DP_RATIO_ + DP_OFFSET_) * 4.0;
 
     //Check pulse width range
-    if(target_val > MAX_PULSE_WIDTH_)
+    if(target_val > MAX_PULSE_WIDTH_ * 4)
     {
       target_val = MAX_PULSE_WIDTH_ * 4;
-    }
-    else
-    {
-      target_val = target_val * 4;
     }
 
     //create two byte value for command

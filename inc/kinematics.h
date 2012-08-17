@@ -17,7 +17,7 @@
 namespace kinematics
 {
 
-  typedef double MatrixValue_t;
+  typedef float MatrixValue_t;
   typedef std::vector<std::vector<MatrixValue_t> > BasicMatrix_t;
   class Matrix
   {

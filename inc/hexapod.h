@@ -10,6 +10,7 @@
 
 #include "maestro_controller.h"
 #include "kinematics.h"
+#include "js_input.h"
 
 class Hexapod : public MaestroController
 {
@@ -22,11 +23,13 @@ class Hexapod : public MaestroController
 
     //Member variable holding the positions of all servos in radians
     //The indices are the servo addresses on the Maestro controller.
-    std::vector<float> servo_angles_;
+    std::vector<double> servo_angles_;
 
-    std::vector<float> get_all_leg_servo_angles();
+    std::vector<double> get_all_leg_servo_angles();
 
     bool check_maestro_errors();
+
+    JSInput js_input_;
 
     kinematics::Body body_;
 

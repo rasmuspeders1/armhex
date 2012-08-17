@@ -29,7 +29,7 @@ class MaestroController
      * @param positions
      * @return result
      */
-    bool setGroupPositions(uint8_t startAddr, std::vector<float> positions);
+    bool setGroupPositions(uint8_t startAddr, std::vector<double> positions);
 
     /**
      * sends a command to turn of all servos on the controller.
@@ -56,15 +56,15 @@ class MaestroController
      */
     bool set_center_offset(unsigned int address, int value);
 
-    int openSerialPort(std::string serial_port_dev = "/dev/ttyACM0");
+    int openSerialPort(std::string serial_port_dev);
     int configureSerialPort();
 
   private:
     //ms to radians ratio
-    const float DP_RATIO_;
+    const double DP_RATIO_;
     //angle to pulse width offset. 0 degrees is 600 hundred ms
-    const float DP_OFFSET_;
-    const float MAX_PULSE_WIDTH_;
+    const double DP_OFFSET_;
+    const double MAX_PULSE_WIDTH_;
 
     //Update interval. MUST BE BELOW ONE SECOND.
     const long UPDATE_INTERVAL_NSECS_;
