@@ -243,6 +243,14 @@ namespace kinematics
 
       const TransformationMatrix & update_transformation_matrix();
 
+      MatrixValue_t roll() const {return roll_;}
+      MatrixValue_t pitch() const {return pitch_;}
+      MatrixValue_t yaw() const {return yaw_;}
+
+      MatrixValue_t x() const {return x_;}
+      MatrixValue_t y() const {return y_;}
+      MatrixValue_t z() const {return z_;}
+
     private:
 
       TransformationMatrix transformation_matrix_; //Transformation matrix from body frame to global frame

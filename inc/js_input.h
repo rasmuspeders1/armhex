@@ -16,6 +16,10 @@
 
 enum
 {
+  AXIS_L_STICK_X = 0,
+  AXIS_L_STICK_Y = 1,
+  AXIS_R_STICK_X = 2,
+  AXIS_R_STICK_Y = 3,
   AXIS_ROLL = 4,
   AXIS_PITCH = 5,
   BUTTON_L2 = 8,
@@ -25,7 +29,8 @@ enum
   AXIS_L2 = 12,
   AXIS_R2 = 13,
   AXIS_L1 = 14,
-  AXIS_R1 = 15
+  AXIS_R1 = 15,
+  BUTTON_PS = 16
 };
 
 struct JSData_t
@@ -42,6 +47,22 @@ struct JSData_t
     float body_relative_roll;
     float body_relative_pitch;
     float body_relative_yaw;
+
+    bool standby;
+
+    JSData_t():
+      gait_x(0),
+      gait_y(0),
+      gait_z(0),
+      body_relative_x(0),
+      body_relative_y(0),
+      body_relative_z(0),
+      body_relative_rotation_enable(false),
+      body_relative_roll(0),
+      body_relative_pitch(0),
+      body_relative_yaw(0),
+      standby(false)
+    {    }
 
 };
 

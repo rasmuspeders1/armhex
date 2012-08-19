@@ -65,6 +65,18 @@ bool JSInput::ReadEvents()
     if(read_return>0)
     {
       switch (js_event_.number) {
+        case AXIS_R_STICK_X:
+          if(js_data_.body_relative_rotation_enable)
+          {
+            js_data_.body_relative_y = - js_event_.value * (30.0)/32768.0;
+          }
+          break;
+        case AXIS_R_STICK_Y:
+          if(js_data_.body_relative_rotation_enable)
+          {
+            js_data_.body_relative_x = - js_event_.value * (30.0)/32768.0;
+          }
+          break;
         case BUTTON_R1:
           js_data_.body_relative_rotation_enable = js_event_.value;
           break;
@@ -82,6 +94,12 @@ bool JSInput::ReadEvents()
           break;
         case AXIS_R2:
           js_data_.body_relative_z = js_event_.value  * 50.0/32768.0;
+          break;
+        case BUTTON_PS:
+          if(js_event_.value)
+          {
+            js_data_.standby = !js_data_.standby;
+          }
           break;
         default:
           break;

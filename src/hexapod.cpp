@@ -9,6 +9,7 @@
 #include <time.h>
 #include <string>
 #include <iomanip>
+#include <math.h>
 
 #include <termios.h>
 #include <fcntl.h>
@@ -43,23 +44,23 @@
 #define GRIPPER_PAN 18
 #define GRIPPER 19
 
-Hexapod::Hexapod():
+Hexapod::Hexapod() :
     js_input_("/dev/input/js0"),
     body_(kinematics::Body()),
-    lr_body_link_(kinematics::Link((5.0/6.0) * M_PI, 0.0, 55.75, 19.0, "Left rear body link", -1)),
+    lr_body_link_(kinematics::Link((5.0 / 6.0) * M_PI, 0.0, 55.75, 19.0, "Left rear body link", -1)),
     lr_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left rear coxa link", 2)),
     lr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left rear femur link", 1)),
     lr_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Left rear tibia link", 0)),
 
-    lm_body_link_(kinematics::Link(M_PI/2.0, 0.0, 35.75, 19.0, "Left middle body link", -1)),
+    lm_body_link_(kinematics::Link(M_PI / 2.0, 0.0, 35.75, 19.0, "Left middle body link", -1)),
     lm_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left middle coxa link", 8)),
     lm_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left middle femur link", 7)),
     lm_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Left middle tibia link", 6)),
 
-    lf_body_link_(kinematics::Link(M_PI/6.0,    0.0, 55.75, 19.0, "Left front body link", -1)),
-    lf_coxa_link_(kinematics::Link( 0.0 / (180.0 / M_PI),  -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left front coxa link", 14)),
-    lf_femur_link_(kinematics::Link(0.0 / (180.0 / M_PI),  180.0 / (180.0 / M_PI), 45.0, 0.0, "Left front femur link", 13)),
-    lf_tibia_link_(kinematics::Link(0.0 / (180.0 / M_PI),    0.0, 70.0, 0.0, "Left front tibia link", 12)),
+    lf_body_link_(kinematics::Link(M_PI / 6.0, 0.0, 55.75, 19.0, "Left front body link", -1)),
+    lf_coxa_link_(kinematics::Link(0.0 / (180.0 / M_PI), -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left front coxa link", 14)),
+    lf_femur_link_(kinematics::Link(0.0 / (180.0 / M_PI), 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left front femur link", 13)),
+    lf_tibia_link_(kinematics::Link(0.0 / (180.0 / M_PI), 0.0, 70.0, 0.0, "Left front tibia link", 12)),
 
     rr_body_link_(kinematics::Link(-150.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Right rear body link", -1)),
     rr_coxa_link_(kinematics::Link(0.0, 90.0 / (180.0 / M_PI), 11.5, 0.0, "Right rear coxa link", 5)),
@@ -90,7 +91,7 @@ Hexapod::Hexapod():
   //Configure all servo center offsets
   set_center_offset(LR_TIBIA, -100 + 900 + 900);
   set_center_offset(LR_FEMUR, -10 + 900);
-  set_center_offset(LR_COXA,  -10 + 900 + 180);
+  set_center_offset(LR_COXA, -10 + 900 + 180);
 
   set_center_offset(RR_TIBIA, 90);
   set_center_offset(RR_FEMUR, -20 + 900);
@@ -156,11 +157,11 @@ Hexapod::Hexapod():
 //  (A*B).print();
 //  (A*C).print();
 
-  //body_.update_transformation_matrix(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
+//body_.update_transformation_matrix(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
 
-   //lm_leg_.InverseKinematic(50, 90, 0);
+//lm_leg_.InverseKinematic(50, 90, 0);
 
-  //body_.update_transformation_matrix(0.0, 0.0, 0.0, -10.0, 0.0, 0.0);
+//body_.update_transformation_matrix(0.0, 0.0, 0.0, -10.0, 0.0, 0.0);
 
   //lf_leg_.InverseKinematic(85.0, 75.0, 0.0);
 //  lm_leg_.InverseKinematic(0.0, 90.0, 0.0);
@@ -189,63 +190,8 @@ bool Hexapod::Update()
 //    return false;
 //  }
 
-  static kinematics::MatrixValue_t body_x = 0;
-  static kinematics::MatrixValue_t body_y = 0;
-  static kinematics::MatrixValue_t body_z = 0;
+  UpdateInput();
 
-  static kinematics::MatrixValue_t body_roll = 0;
-  static kinematics::MatrixValue_t body_pitch = 0;
-
-  static JSData_t js_data;
-
-  if(js_input_.GetJSInput(js_data))
-  {
-//    std::cout <<  "Got joystick input:"
-//        << "\nBody relative roll:  " << js_data.body_relative_roll
-//        << "\nBody relative pitch: " << js_data.body_relative_pitch
-//        << "\nBody relative yaw:   " << js_data.body_relative_yaw
-//        << "\nBody relative x:   " << js_data.body_relative_x
-//        << "\nBody relative y:   " << js_data.body_relative_y
-//        << "\nBody relative z:   " << js_data.body_relative_z
-//        << std::endl;
-    body_roll = js_data.body_relative_roll;
-    body_pitch = js_data.body_relative_pitch;
-    body_z = 10.0 + js_data.body_relative_z;
-  }
-
-
-
-//  static bool dir = true;
-//
-//  if(dir)
-//  {
-//    body_x+=0.5;
-//  }
-//  else
-//  {
-//    body_x-=0.5;
-//  }
-//
-//  if(body_x > 40)
-//  {
-//    dir = false;
-//  }
-//  if(body_x < -40)
-//  {
-//    dir = true;
-//  }
-
-  body_.update_transformation_matrix(body_roll, body_pitch, 0.0, body_x, body_y, body_z);
-
-  lf_leg_.InverseKinematic(85.0, 75.0, 0.0);
-  lm_leg_.InverseKinematic(0.0, 90.0, 0.0);
-  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
-
-  rf_leg_.InverseKinematic(85.0, -75.0, 0.0);
-  rm_leg_.InverseKinematic(0.0, -80.0, 0.0);
-  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
-
-  setGroupPositions(0, get_all_leg_servo_angles());
 
   return true;
 }
@@ -268,6 +214,102 @@ bool Hexapod::check_maestro_errors()
   }
 
   return true;
+}
+
+void Hexapod::UpdateInput()
+{
+  const static kinematics::MatrixValue_t BODY_RELATIVE_ROTATION_STEP = 2.0 * M_PI / 180.0;      // 2.0 degrees per step
+  const static kinematics::MatrixValue_t BODY_RELATIVE_TRANSLATION_STEP = 3.0;                  // 3.0 mm per step
+
+  static JSData_t js_data;
+  static bool standing_by = false;
+  if(js_input_.GetJSInput(js_data))
+  {
+//    std::cout <<  "Got joystick input:"
+//        << "\nBody relative roll:  " << js_data.body_relative_roll
+//        << "\nBody relative pitch: " << js_data.body_relative_pitch
+//        << "\nBody relative yaw:   " << js_data.body_relative_yaw
+//        << "\nBody relative x:   " << js_data.body_relative_x
+//        << "\nBody relative y:   " << js_data.body_relative_y
+//        << "\nBody relative z:   " << js_data.body_relative_z
+//        << std::endl;
+  }
+
+  if(js_data.standby)
+  {
+    if(!standing_by)
+    {
+      standing_by = true;
+      goHomeAllServos();
+    }
+    usleep(15000);
+    return;
+  }
+  else
+  {
+    standing_by = false;
+  }
+
+  kinematics::MatrixValue_t body_roll = js_data.body_relative_roll;
+  kinematics::MatrixValue_t abs_roll_diff = fabs(js_data.body_relative_roll - body_.roll());
+
+  if(abs_roll_diff > BODY_RELATIVE_ROTATION_STEP)
+  {
+    body_roll = body_.roll() + (js_data.body_relative_roll - body_.roll()) * (BODY_RELATIVE_ROTATION_STEP / abs_roll_diff);
+  }
+
+  kinematics::MatrixValue_t body_pitch = js_data.body_relative_pitch;
+  kinematics::MatrixValue_t abs_pitch_diff = fabs(js_data.body_relative_pitch - body_.pitch());
+
+  if(abs_pitch_diff > BODY_RELATIVE_ROTATION_STEP)
+  {
+    body_pitch = body_.pitch() + (js_data.body_relative_pitch - body_.pitch()) * (BODY_RELATIVE_ROTATION_STEP / abs_pitch_diff);
+  }
+
+  kinematics::MatrixValue_t body_yaw = js_data.body_relative_yaw;
+  kinematics::MatrixValue_t abs_yaw_diff = fabs(js_data.body_relative_yaw - body_.yaw());
+
+  if(abs_yaw_diff > BODY_RELATIVE_ROTATION_STEP)
+  {
+    body_yaw = body_.yaw() + (js_data.body_relative_yaw - body_.yaw()) * (BODY_RELATIVE_ROTATION_STEP / abs_yaw_diff);
+  }
+
+  kinematics::MatrixValue_t body_x = js_data.body_relative_x;
+  kinematics::MatrixValue_t abs_x_diff = fabs(js_data.body_relative_x - body_.x());
+
+  if(abs_x_diff > BODY_RELATIVE_TRANSLATION_STEP)
+  {
+    body_x = body_.x() + (js_data.body_relative_x - body_.x()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_x_diff);
+  }
+
+  kinematics::MatrixValue_t body_y = js_data.body_relative_y;
+  kinematics::MatrixValue_t abs_y_diff = fabs(js_data.body_relative_y - body_.y());
+
+  if(abs_y_diff > BODY_RELATIVE_TRANSLATION_STEP)
+  {
+    body_y = body_.y() + (js_data.body_relative_y - body_.y()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_y_diff);
+  }
+
+  kinematics::MatrixValue_t body_z = js_data.body_relative_z;
+  kinematics::MatrixValue_t abs_z_diff = fabs(js_data.body_relative_z - body_.z());
+
+  if(abs_z_diff > BODY_RELATIVE_TRANSLATION_STEP)
+  {
+    body_z = body_.z() + (js_data.body_relative_z - body_.z()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_z_diff);
+  }
+
+  body_.update_transformation_matrix(body_roll, body_pitch, body_yaw, body_x, body_y, body_z);
+
+  lf_leg_.InverseKinematic(85.0, 75.0, 0.0);
+  lm_leg_.InverseKinematic(0.0, 90.0, 0.0);
+  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
+
+  rf_leg_.InverseKinematic(85.0, -75.0, 0.0);
+  rm_leg_.InverseKinematic(0.0, -80.0, 0.0);
+  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
+
+  setGroupPositions(0, get_all_leg_servo_angles());
+
 }
 
 std::vector<double> Hexapod::get_all_leg_servo_angles()

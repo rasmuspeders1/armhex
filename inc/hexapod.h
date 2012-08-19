@@ -29,6 +29,11 @@ class Hexapod : public MaestroController
 
     bool check_maestro_errors();
 
+    /**
+     * Read any input from joystick and take appropriate action.
+     */
+    void UpdateInput();
+
     JSInput js_input_;
 
     kinematics::Body body_;
