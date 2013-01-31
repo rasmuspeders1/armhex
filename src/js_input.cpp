@@ -11,6 +11,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <math.h>
+#include <unistd.h>
 
 JSInput::JSInput(std::string js_dev_name) :
     js_dev_(js_dev_name),
