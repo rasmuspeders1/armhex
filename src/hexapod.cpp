@@ -14,6 +14,8 @@
 #include <termios.h>
 #include <fcntl.h>
 
+#include <unistd.h>
+
 #include "hexapod.h"
 
 //Define all servo addresses to human readable positions
