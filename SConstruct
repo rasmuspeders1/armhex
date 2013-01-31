@@ -9,5 +9,6 @@ if platform.machine() != 'armv6l':
 	env.PrependENVPath('PATH', os.path.join(tool_chain_root_path, 'bin'))
 
 	env['CXX'] = 'arm-linux-gnueabihf-g++'
-
+else:
+	env = Environment(CPPPATH='inc')
 env.Program('armhex', Glob('src/*.cpp'), LIBS=['rt'])
