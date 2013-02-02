@@ -1,5 +1,5 @@
 /*
- * kinematics.c++
+ * kinematics.cpp
  *
  *  Created on: Jul 14, 2012
  *      Author: rasmus
@@ -300,12 +300,13 @@ namespace kinematics
 
 
 
-    //Length from body link to tibia link (End point). Pytagoras -> sqrt(x^2, y^3)
+    //Length from body link to tibia link (End point). Pytagoras -> sqrt(x^2, y^2)
     MatrixValue_t a = sqrtf(position_body_link[0][0] * position_body_link[0][0] + position_body_link[1][0] * position_body_link[1][0]);
     //std::cout << "a: " << a << std::endl;
 
     //Sanity check a
-    if(a < 0 || a > coxa_link_.a() + femur_link_.a() + tibia_link_.a())
+    //use a small tolerance to allow small floating point rounding error.
+    if(a < 0 || a - (coxa_link_.a() + femur_link_.a() + tibia_link_.a()) > 0.0001)
     {
       return false;
     }

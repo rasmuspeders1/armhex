@@ -18,6 +18,8 @@
 
 #include "hexapod.h"
 
+#include "gait.h"
+
 //Define all servo addresses to human readable positions
 #define LR_TIBIA 0
 #define LR_FEMUR 1
@@ -64,7 +66,7 @@ Hexapod::Hexapod() :
     lf_femur_link_(kinematics::Link(0.0 / (180.0 / M_PI), 180.0 / (180.0 / M_PI), 45.0, 0.0, "Left front femur link", 13)),
     lf_tibia_link_(kinematics::Link(0.0 / (180.0 / M_PI), 0.0, 70.0, 0.0, "Left front tibia link", 12)),
 
-    rr_body_link_(kinematics::Link(-150.0 / (180.0 / M_PI), 0.0, 55.75, 19.0, "Right rear body link", -1)),
+    rr_body_link_(kinematics::Link(-(5.0 / 6.0) * M_PI, 0.0, 55.75, 19.0, "Right rear body link", -1)),
     rr_coxa_link_(kinematics::Link(0.0, 90.0 / (180.0 / M_PI), 11.5, 0.0, "Right rear coxa link", 5)),
     rr_femur_link_(kinematics::Link(0.0, 180.0 / (180.0 / M_PI), 45.0, 0.0, "Right rear femur link", 4)),
     rr_tibia_link_(kinematics::Link(0.0, 0.0, 70.0, 0.0, "Right rear tibia link", 3)),
@@ -220,11 +222,12 @@ bool Hexapod::check_maestro_errors()
 
 void Hexapod::UpdateInput()
 {
-  const static kinematics::MatrixValue_t BODY_RELATIVE_ROTATION_STEP = 2.0 * M_PI / 180.0;      // 2.0 degrees per step
-  const static kinematics::MatrixValue_t BODY_RELATIVE_TRANSLATION_STEP = 3.0;                  // 3.0 mm per step
+  const static kinematics::MatrixValue_t BODY_RELATIVE_ROTATION_STEP = 1.0 * M_PI / 180.0;      // 1.0 degrees per step
+  const static kinematics::MatrixValue_t BODY_RELATIVE_TRANSLATION_STEP = 2.0;                  // 2.0 mm per step
 
   static JSData_t js_data;
   static bool standing_by = false;
+
   if(js_input_.GetJSInput(js_data))
   {
 //    std::cout <<  "Got joystick input:"
@@ -307,7 +310,7 @@ void Hexapod::UpdateInput()
   lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
 
   rf_leg_.InverseKinematic(85.0, -75.0, 0.0);
-  rm_leg_.InverseKinematic(0.0, -80.0, 0.0);
+  rm_leg_.InverseKinematic(0.0, -90.0, 0.0);
   rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
 
   setGroupPositions(0, get_all_leg_servo_angles());

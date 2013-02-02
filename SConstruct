@@ -1,14 +1,31 @@
 import platform
+
+cxx_flags = '-O2'
+
+raspberry_pi_hostname = '192.168.1.143'
+
 if platform.machine() != 'armv6l':
 	import os
 	tool_chain_root_path = '../tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/'
 	tool_chain_prefix = 'arm-linux-gnueabihf'
-	env = Environment(CPPPATH='inc:' + os.path.join(tool_chain_root_path, 'arm-linux-gnueabihf/include/c++/4.7.2') , LIBPATH=os.path.join(tool_chain_root_path, 'libc'))
+	env = Environment(CXXFLAGS=cxx_flags, CPPPATH='inc:' + os.path.join(tool_chain_root_path, 'arm-linux-gnueabihf/include/c++/4.7.2'))
 
 	#add toolchain bin path to path
 	env.PrependENVPath('PATH', os.path.join(tool_chain_root_path, 'bin'))
 
 	env['CXX'] = 'arm-linux-gnueabihf-g++'
 else:
-	env = Environment(CPPPATH='inc')
-env.Program('armhex', Glob('src/*.cpp'), LIBS=['rt'])
+	env = Environment(CPPPATH='inc', CXXFLAGS=cxx_flags)
+
+armhex = env.Program(target='armhex', source=Glob('src/*.cpp'), LIBS=['rt'])
+
+
+if platform.machine() == 'armv6l':
+	Default(armhex)
+
+
+test = Command( target = 'transfer',
+                source = armhex,
+                action = 'scp armhex pi@' + raspberry_pi_hostname + ':/home/pi/armhex/armhex' )
+                
+     
