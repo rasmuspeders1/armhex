@@ -6,7 +6,9 @@ raspberry_pi_hostname = '192.168.1.143'
 
 if platform.machine() != 'armv6l':
 	import os
-	tool_chain_root_path = '../tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/'
+	tool_chain_root_path = os.path.abspath('../tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/')
+	if not os.path.exists(tool_chain_root_path):
+		print('toolchain path does not exist!')
 	tool_chain_prefix = 'arm-linux-gnueabihf'
 	env = Environment(CXXFLAGS=cxx_flags, CPPPATH='inc:' + os.path.join(tool_chain_root_path, 'arm-linux-gnueabihf/include/c++/4.7.2'))
 

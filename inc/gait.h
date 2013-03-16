@@ -44,6 +44,8 @@ class Gait
     kinematics::TranslationMatrix rm_limb_pos_;
     kinematics::TranslationMatrix rf_limb_pos_;
 
+    kinematics::TransformationMatrix update_endpoint()
+
 
 
 

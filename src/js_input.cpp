@@ -13,6 +13,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdexcept>
 
 JSInput::JSInput(std::string js_dev_name) :
     js_dev_(js_dev_name),
@@ -27,8 +28,7 @@ int JSInput::OpenDevice(std::string js_dev)
   js_FD_ = open(js_dev.c_str(), O_RDONLY | O_NONBLOCK);
   if(js_FD_ == -1)
   {
-    std::cout << "Failed to open joystick device <" << js_dev << ">" << std::endl;
-    return -1;
+    throw std::runtime_error("Failed to open Joystick <" + js_dev + ">");
   }
 
   ioctl(js_FD_, JSIOCGAXES, &num_of_axis_);

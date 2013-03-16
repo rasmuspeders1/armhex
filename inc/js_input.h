@@ -13,6 +13,7 @@
 #include <linux/joystick.h>
 #include <string>
 #include <fcntl.h>
+#include <exception>
 
 enum
 {
