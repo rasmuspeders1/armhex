@@ -50,6 +50,7 @@
 
 Hexapod::Hexapod() :
     js_input_("/dev/input/js0"),
+	  gait_(),
     body_(kinematics::Body()),
     lr_body_link_(kinematics::Link((5.0 / 6.0) * M_PI, 0.0, 55.75, 19.0, "Left rear body link", -1)),
     lr_coxa_link_(kinematics::Link(0.0, -90.0 / (180.0 / M_PI), 11.5, 0.0, "Left rear coxa link", 2)),
@@ -121,7 +122,7 @@ Hexapod::Hexapod() :
   set_center_offset(GRIPPER_PAN, -50 + 900);
 
   //Open and configure serial port
-  if(openSerialPort("/dev/ttyAMA0") != -1)
+  if(openSerialPort("/dev/rfcomm0") != -1)
   {
     configureSerialPort();
   }
@@ -231,6 +232,8 @@ void Hexapod::UpdateInput()
   if(js_input_.GetJSInput(js_data))
   {
 //    std::cout <<  "Got joystick input:"
+//        << "\nGait X:  " << js_data.gait_x
+//        << "\nGait Y:  " << js_data.gait_y
 //        << "\nBody relative roll:  " << js_data.body_relative_roll
 //        << "\nBody relative pitch: " << js_data.body_relative_pitch
 //        << "\nBody relative yaw:   " << js_data.body_relative_yaw
@@ -255,63 +258,74 @@ void Hexapod::UpdateInput()
     standing_by = false;
   }
 
-  kinematics::MatrixValue_t body_roll = js_data.body_relative_roll;
-  kinematics::MatrixValue_t abs_roll_diff = fabs(js_data.body_relative_roll - body_.roll());
+//  kinematics::MatrixValue_t body_roll = js_data.body_relative_roll;
+//  kinematics::MatrixValue_t abs_roll_diff = fabs(js_data.body_relative_roll - body_.roll());
 
-  if(abs_roll_diff > BODY_RELATIVE_ROTATION_STEP)
+//  if(abs_roll_diff > BODY_RELATIVE_ROTATION_STEP)
+//  {
+//    body_roll = body_.roll() + (js_data.body_relative_roll - body_.roll()) * (BODY_RELATIVE_ROTATION_STEP / abs_roll_diff);
+//  }
+
+//  kinematics::MatrixValue_t body_pitch = js_data.body_relative_pitch;
+//  kinematics::MatrixValue_t abs_pitch_diff = fabs(js_data.body_relative_pitch - body_.pitch());
+
+//  if(abs_pitch_diff > BODY_RELATIVE_ROTATION_STEP)
+//  {
+//    body_pitch = body_.pitch() + (js_data.body_relative_pitch - body_.pitch()) * (BODY_RELATIVE_ROTATION_STEP / abs_pitch_diff);
+//  }
+
+//  kinematics::MatrixValue_t body_yaw = js_data.body_relative_yaw;
+//  kinematics::MatrixValue_t abs_yaw_diff = fabs(js_data.body_relative_yaw - body_.yaw());
+
+//  if(abs_yaw_diff > BODY_RELATIVE_ROTATION_STEP)
+//  {
+//    body_yaw = body_.yaw() + (js_data.body_relative_yaw - body_.yaw()) * (BODY_RELATIVE_ROTATION_STEP / abs_yaw_diff);
+//  }
+//
+//  kinematics::MatrixValue_t body_x = js_data.body_relative_x;
+//  kinematics::MatrixValue_t abs_x_diff = fabs(js_data.body_relative_x - body_.x());
+//
+//  if(abs_x_diff > BODY_RELATIVE_TRANSLATION_STEP)
+//  {
+//    body_x = body_.x() + (js_data.body_relative_x - body_.x()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_x_diff);
+//  }
+//
+//  kinematics::MatrixValue_t body_y = js_data.body_relative_y;
+//  kinematics::MatrixValue_t abs_y_diff = fabs(js_data.body_relative_y - body_.y());
+//
+//  if(abs_y_diff > BODY_RELATIVE_TRANSLATION_STEP)
+//  {
+//    body_y = body_.y() + (js_data.body_relative_y - body_.y()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_y_diff);
+//  }
+//
+//  kinematics::MatrixValue_t body_z = js_data.body_relative_z;
+//  kinematics::MatrixValue_t abs_z_diff = fabs(js_data.body_relative_z - body_.z());
+//
+//  if(abs_z_diff > BODY_RELATIVE_TRANSLATION_STEP)
+//  {
+//    body_z = body_.z() + (js_data.body_relative_z - body_.z()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_z_diff);
+//  }
+  gait_.direction(js_data.gait_x, js_data.gait_y, 0.0);
+  Pose target;
+  try
   {
-    body_roll = body_.roll() + (js_data.body_relative_roll - body_.roll()) * (BODY_RELATIVE_ROTATION_STEP / abs_roll_diff);
+    target = gait_.target();
   }
-
-  kinematics::MatrixValue_t body_pitch = js_data.body_relative_pitch;
-  kinematics::MatrixValue_t abs_pitch_diff = fabs(js_data.body_relative_pitch - body_.pitch());
-
-  if(abs_pitch_diff > BODY_RELATIVE_ROTATION_STEP)
+  catch (const kinematics::matrix_operation_error &e)
   {
-    body_pitch = body_.pitch() + (js_data.body_relative_pitch - body_.pitch()) * (BODY_RELATIVE_ROTATION_STEP / abs_pitch_diff);
+    std::cout << "gait_.target() failed with: " << e.what();
+    abort();
   }
+  body_.update_transformation_matrix(target.body_roll_, target.body_pitch_, target.body_yaw_, target.body_x_, target.body_y_, 20.0);
 
-  kinematics::MatrixValue_t body_yaw = js_data.body_relative_yaw;
-  kinematics::MatrixValue_t abs_yaw_diff = fabs(js_data.body_relative_yaw - body_.yaw());
 
-  if(abs_yaw_diff > BODY_RELATIVE_ROTATION_STEP)
-  {
-    body_yaw = body_.yaw() + (js_data.body_relative_yaw - body_.yaw()) * (BODY_RELATIVE_ROTATION_STEP / abs_yaw_diff);
-  }
+  lf_leg_.InverseKinematic(target.lf_limb_pos_);
+  lm_leg_.InverseKinematic(target.lm_limb_pos_);
+  lr_leg_.InverseKinematic(target.lr_limb_pos_);
 
-  kinematics::MatrixValue_t body_x = js_data.body_relative_x;
-  kinematics::MatrixValue_t abs_x_diff = fabs(js_data.body_relative_x - body_.x());
-
-  if(abs_x_diff > BODY_RELATIVE_TRANSLATION_STEP)
-  {
-    body_x = body_.x() + (js_data.body_relative_x - body_.x()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_x_diff);
-  }
-
-  kinematics::MatrixValue_t body_y = js_data.body_relative_y;
-  kinematics::MatrixValue_t abs_y_diff = fabs(js_data.body_relative_y - body_.y());
-
-  if(abs_y_diff > BODY_RELATIVE_TRANSLATION_STEP)
-  {
-    body_y = body_.y() + (js_data.body_relative_y - body_.y()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_y_diff);
-  }
-
-  kinematics::MatrixValue_t body_z = js_data.body_relative_z;
-  kinematics::MatrixValue_t abs_z_diff = fabs(js_data.body_relative_z - body_.z());
-
-  if(abs_z_diff > BODY_RELATIVE_TRANSLATION_STEP)
-  {
-    body_z = body_.z() + (js_data.body_relative_z - body_.z()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_z_diff);
-  }
-
-  body_.update_transformation_matrix(body_roll, body_pitch, body_yaw, body_x, body_y, body_z);
-
-  lf_leg_.InverseKinematic(85.0, 75.0, 0.0);
-  lm_leg_.InverseKinematic(0.0, 90.0, 0.0);
-  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
-
-  rf_leg_.InverseKinematic(85.0, -75.0, 0.0);
-  rm_leg_.InverseKinematic(0.0, -90.0, 0.0);
-  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
+  rf_leg_.InverseKinematic(target.rf_limb_pos_);
+  rm_leg_.InverseKinematic(target.rm_limb_pos_);
+  rr_leg_.InverseKinematic(target.rr_limb_pos_);
 
   setGroupPositions(0, get_all_leg_servo_angles());
 

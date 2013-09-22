@@ -13,12 +13,22 @@
 #include <math.h>
 #include <iostream>
 #include <numeric>
+#include <stdexcept>
+#include <boost/lexical_cast.hpp>
 
 namespace kinematics
 {
 
   typedef float MatrixValue_t;
   typedef std::vector<std::vector<MatrixValue_t> > BasicMatrix_t;
+
+  class matrix_operation_error: public std::runtime_error
+  {
+   public:
+    matrix_operation_error(const std::string & m):std::runtime_error(m){ }
+
+  };
+
   class Matrix
   {
     public:
@@ -53,15 +63,31 @@ namespace kinematics
       }
 
       /**
+       * Norm method returns the p=2 norm aka the Frobenius norm aka the Hilbert–Schmidt norm
+       * norm = sqrt(a^2 + b^2 + c^2)
+       */
+      MatrixValue_t norm()
+      {
+        MatrixValue_t norm = 0.0;
+        for (unsigned int i = 0; i < rows_; i++)
+        {
+          for (unsigned int j = 0; j < columns_; j++)
+          {
+            norm += (*this)[i][j] * (*this)[i][j];
+          }
+        }
+        norm = sqrt(norm);
+        return norm;
+      }
+
+      /**
        * operator* calculates dot product of two matrices
        */
       Matrix operator*(const Matrix &other) const
       {
-
         if(columns_ != other.rows_)
         {
-          //TODO: Throw exception.
-          return Matrix(0, 0);
+          throw matrix_operation_error("operator* called with matrices of invalid dimensions");
         }
 
         //initialize output matrix
@@ -85,6 +111,170 @@ namespace kinematics
         }
 
         return output_matrix;
+      }
+      /**
+       * operator * multiplies by factor
+       */
+      Matrix operator*(MatrixValue_t factor) const
+      {
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            output_matrix[row][col] = (*this)[row][col] * factor;
+          }
+
+        }
+
+        return output_matrix;
+      }
+
+      /**
+       * operator / divides by value
+       */
+      Matrix operator/(MatrixValue_t value) const
+      {
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            output_matrix[row][col] = (*this)[row][col] / value;
+          }
+
+        }
+
+        return output_matrix;
+      }
+
+      /**
+       * operator- subtracts all entries in a matrix from all entries in this matrix
+       */
+      Matrix operator-(const Matrix &other) const
+      {
+        if(columns_ != other.columns_ || rows_ != other.rows_)
+        {
+          throw matrix_operation_error("operator- called with matrices of invalid dimensions." + boost::lexical_cast<std::  string>(columns_) + " " + boost::lexical_cast<std::  string>(other.columns_) + " " + boost::lexical_cast<std::  string>(rows_) + " " + boost::lexical_cast<std::  string>(other.rows_));
+        }
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, other.columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            output_matrix[row][col] = (*this)[row][col] - other[row][col];
+          }
+
+        }
+
+        return output_matrix;
+      }
+
+      /**
+       * operator+ adds all entries in a matrix to all entries in this matrix
+       */
+      Matrix operator+(const Matrix &other) const
+      {
+        if(columns_ != other.columns_ || rows_ != other.rows_)
+        {
+          throw matrix_operation_error("operator+ called with matrices of invalid dimensions");
+        }
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, other.columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            output_matrix[row][col] = (*this)[row][col] + other[row][col];
+          }
+
+        }
+
+        return output_matrix;
+      }
+
+      /**
+       * operator== compares two matrices
+       */
+      bool operator==(const Matrix &other) const
+      {
+        if(columns_ != other.columns_ || rows_ != other.rows_)
+        {
+          return false;
+        }
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, other.columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            if((*this)[row][col] != other[row][col])
+            {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      /**
+       * operator!= compares two matrices
+       */
+      bool operator!=(const Matrix &other) const
+      {
+        if(columns_ != other.columns_ || rows_ != other.rows_)
+        {
+          return true;
+        }
+
+        //initialize output matrix
+        Matrix output_matrix = Matrix(rows_, other.columns_);
+
+        unsigned int row;
+        unsigned int col;
+
+        for (row = 0; row < rows_; row++)
+        {
+          for (col = 0; col < columns_; col++)
+          {
+            if((*this)[row][col] != other[row][col])
+            {
+              return true;
+            }
+          }
+
+        }
+
+        return false;
       }
 
       std::vector<MatrixValue_t> & operator[](size_t n)
@@ -111,7 +301,7 @@ namespace kinematics
   {
     public:
       TranslationMatrix();
-      TranslationMatrix(Matrix other);
+      TranslationMatrix(const Matrix &other);
       TranslationMatrix(MatrixValue_t x, MatrixValue_t y, MatrixValue_t z);
       virtual ~TranslationMatrix();
 
@@ -139,13 +329,40 @@ namespace kinematics
   {
     public:
       TransformationMatrix();
-      TransformationMatrix(Matrix other);
+      TransformationMatrix(const Matrix &other);
+
       virtual ~TransformationMatrix();
       TranslationMatrix Translation() const;
       TransformationMatrix InverseTransformation() const;
       RotationMatrix Rotation() const;
       private:
 
+  };
+
+  class BasicTransformationMatrix: public TransformationMatrix
+  {
+   public:
+    BasicTransformationMatrix();
+    BasicTransformationMatrix(const Matrix & other);
+    BasicTransformationMatrix(MatrixValue_t x, MatrixValue_t y, MatrixValue_t z, MatrixValue_t roll, MatrixValue_t pitch, MatrixValue_t yaw);
+    virtual ~BasicTransformationMatrix(){;}
+    void update(MatrixValue_t x, MatrixValue_t y, MatrixValue_t z, MatrixValue_t roll, MatrixValue_t pitch, MatrixValue_t yaw);
+   private:
+
+    MatrixValue_t roll_; //Rotation around the frame y-axis.
+    MatrixValue_t pitch_; //Rotation around the frame x-axis.
+    MatrixValue_t yaw_; //Rotation around the frame z-axis.
+    MatrixValue_t cos_roll_;
+    MatrixValue_t cos_pitch_;
+    MatrixValue_t cos_yaw_;
+    MatrixValue_t sin_roll_;
+    MatrixValue_t sin_pitch_;
+    MatrixValue_t sin_yaw_;
+    MatrixValue_t x_; //Position of the body frame along the x-axis of the frame.
+    MatrixValue_t y_; //Position of the body frame along the y-axis of the frame.
+    MatrixValue_t z_; //Position of the body frame along the z-axis of the frame.
+
+    void calc_matrix();
   };
 
   /**

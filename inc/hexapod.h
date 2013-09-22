@@ -11,6 +11,7 @@
 #include "maestro_controller.h"
 #include "kinematics.h"
 #include "js_input.h"
+#include "gait.h"
 
 class Hexapod : public MaestroController
 {
@@ -35,6 +36,8 @@ class Hexapod : public MaestroController
     void UpdateInput();
 
     JSInput js_input_;
+
+    Gait gait_;
 
     kinematics::Body body_;
 

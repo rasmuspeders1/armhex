@@ -41,7 +41,7 @@ namespace kinematics
 
   }
 
-  TransformationMatrix::TransformationMatrix(Matrix other) :
+  TransformationMatrix::TransformationMatrix(const Matrix &other) :
       Matrix(other)
   {
 
@@ -129,10 +129,10 @@ namespace kinematics
   TranslationMatrix::TranslationMatrix() :
       Matrix(4, 1)
   {
-
+    (*this)[3][0] = 1;
   }
 
-  TranslationMatrix::TranslationMatrix(Matrix other) :
+  TranslationMatrix::TranslationMatrix(const Matrix &other) :
       Matrix(other)
   {
 
@@ -247,13 +247,6 @@ namespace kinematics
   {
 
   }
-
-//  {'lf':numpy.matrix([[  85.0], [  75.0], [   0.0]]),
-//                          'lm':numpy.matrix([[   0.0], [  90.0], [   0.0]]),
-//                          'lb':numpy.matrix([[ -85.0], [  75.0], [   0.0]]),
-//                          'rf':numpy.matrix([[  85.0], [ -75.0], [   0.0]]),
-//                          'rm':numpy.matrix([[   0.0], [ -90.0], [   0.0]]),
-//                          'rb':numpy.matrix([[ -85.0], [ -75.0], [   0.0]])
 
   /*
    * Limb Implementation
@@ -375,19 +368,19 @@ namespace kinematics
    * Body Implementation
    */
   Body::Body() :
-      transformation_matrix_(TransformationMatrix()),
-      roll_(0),
-      pitch_(0),
-      yaw_(0),
-      cos_roll_(cos(roll_)),
-      cos_pitch_(cos(pitch_)),
-      cos_yaw_(cos(yaw_)),
-      sin_roll_(sin(roll_)),
-      sin_pitch_(sin(pitch_)),
-      sin_yaw_(sin(yaw_)),
-      x_(0),
-      y_(0),
-      z_(0)
+  transformation_matrix_(TransformationMatrix()),
+  roll_(0),
+  pitch_(0),
+  yaw_(0),
+  cos_roll_(cos(roll_)),
+  cos_pitch_(cos(pitch_)),
+  cos_yaw_(cos(yaw_)),
+  sin_roll_(sin(roll_)),
+  sin_pitch_(sin(pitch_)),
+  sin_yaw_(sin(yaw_)),
+  x_(0),
+  y_(0),
+  z_(0)
   {
     update_transformation_matrix();
   }
@@ -451,5 +444,93 @@ namespace kinematics
   {
     return transformation_matrix_;
   }
+
+  BasicTransformationMatrix::BasicTransformationMatrix():
+  roll_(0),
+  pitch_(0),
+  yaw_(0),
+  cos_roll_(cos(roll_)),
+  cos_pitch_(cos(pitch_)),
+  cos_yaw_(cos(yaw_)),
+  sin_roll_(sin(roll_)),
+  sin_pitch_(sin(pitch_)),
+  sin_yaw_(sin(yaw_)),
+  x_(0),
+  y_(0),
+  z_(0)
+  {
+
+  }
+
+  BasicTransformationMatrix::BasicTransformationMatrix(const Matrix &other):
+  roll_(0),
+  pitch_(0),
+  yaw_(0),
+  cos_roll_(cos(roll_)),
+  cos_pitch_(cos(pitch_)),
+  cos_yaw_(cos(yaw_)),
+  sin_roll_(sin(roll_)),
+  sin_pitch_(sin(pitch_)),
+  sin_yaw_(sin(yaw_)),
+  x_(0),
+  y_(0),
+  z_(0),
+  TransformationMatrix(other)
+  {
+
+  }
+
+  BasicTransformationMatrix::BasicTransformationMatrix(MatrixValue_t x, MatrixValue_t y, MatrixValue_t z, MatrixValue_t roll, MatrixValue_t pitch, MatrixValue_t yaw)
+  {
+    update(x, y, z, roll, pitch, yaw);
+  }
+
+  void BasicTransformationMatrix::update(MatrixValue_t x, MatrixValue_t y, MatrixValue_t z, MatrixValue_t roll, MatrixValue_t pitch, MatrixValue_t yaw)
+  {
+    roll_ = roll;
+    pitch_ = pitch;
+    yaw_ = yaw;
+    x_ = x;
+    y_ = y;
+    z_ = z;
+
+    cos_roll_ = cos(roll_);
+    cos_pitch_ = cos(pitch_);
+    cos_yaw_ = cos(yaw_);
+
+    sin_roll_ = sin(roll_);
+    sin_pitch_ = sin(pitch_);
+    sin_yaw_ = sin(yaw_);
+
+    calc_matrix();
+  }
+
+  void BasicTransformationMatrix::calc_matrix()
+  {
+    //First Column
+    (*this)[0][0] = cos_yaw_ * cos_pitch_;
+    (*this)[1][0] = sin_yaw_ * cos_pitch_;
+    (*this)[2][0] = -sin_pitch_;
+    (*this)[3][0] = 0;
+
+    //Second Column
+    (*this)[0][1] = -cos_roll_ * sin_yaw_ + cos_yaw_ * sin_roll_ * sin_pitch_;
+    (*this)[1][1] = cos_roll_ * cos_yaw_ + sin_roll_ * sin_pitch_ * sin_yaw_;
+    (*this)[2][1] = cos_pitch_ * sin_roll_;
+    (*this)[3][1] = 0;
+
+    //Third Column
+    (*this)[0][2] = sin_roll_ * sin_yaw_ + cos_roll_ * cos_yaw_ * sin_pitch_;
+    (*this)[1][2] = -cos_yaw_ * sin_roll_ + cos_roll_ * sin_pitch_ * sin_yaw_;
+    (*this)[2][2] = cos_roll_ * cos_pitch_;
+    (*this)[3][2] = 0;
+
+    //Fourth Column
+    (*this)[0][3] = x_;
+    (*this)[1][3] = y_;
+    (*this)[2][3] = z_;
+    (*this)[3][3] = 1;
+  }
+
 
 }

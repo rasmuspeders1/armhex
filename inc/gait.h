@@ -11,6 +11,33 @@
 #include "kinematics.h"
 
 /**
+ * Class to hold information of a given pose of the hexapod.
+ * This means body position and rotation and limb end point positions.
+ */
+class Pose
+{
+ public:
+  Pose();
+  virtual ~Pose();
+
+  kinematics::MatrixValue_t body_x_;
+  kinematics::MatrixValue_t body_y_;
+  kinematics::MatrixValue_t body_z_;
+
+  kinematics::MatrixValue_t body_roll_;
+  kinematics::MatrixValue_t body_pitch_;
+  kinematics::MatrixValue_t body_yaw_;
+
+  kinematics::TranslationMatrix lf_limb_pos_;
+  kinematics::TranslationMatrix lm_limb_pos_;
+  kinematics::TranslationMatrix lr_limb_pos_;
+  kinematics::TranslationMatrix rf_limb_pos_;
+  kinematics::TranslationMatrix rm_limb_pos_;
+  kinematics::TranslationMatrix rr_limb_pos_;
+
+};
+
+/**
  * Base hexapod gait class
  * This implements the interface towards the main hexapod class and kinematics classes
  * It also implements the first basic gate.
@@ -18,38 +45,59 @@
  */
 class Gait
 {
-  public:
-    Gait();
-    virtual ~Gait();
+ public:
+  Gait();
+  virtual ~Gait();
 
-    /**
-     * Takes a direction input to be used for the gait calculation
-     */
-    bool SetDirection(kinematics::TranslationMatrix direction_matrix);
+  /**
+   * Sets the gait direction
+   * x,y indicates the translation direction and the yaw indicates the turning
+   * norm of x,y vector determines step length
+   */
+   void direction(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, kinematics::MatrixValue_t yaw);
 
-  private:
-    kinematics::MatrixValue_t body_x_;
-    kinematics::MatrixValue_t body_y_;
-    kinematics::MatrixValue_t body_z_;
+  /**
+   * Returns the current gait target pose
+   * This will change as the gait cycles along and the steps are executed aswell as when the input is changed.
+   */
+  Pose target();
 
-    kinematics::MatrixValue_t body_roll_;
-    kinematics::MatrixValue_t body_pitch_;
-    kinematics::MatrixValue_t body_yaw_;
+ private:
 
-    kinematics::TranslationMatrix lr_limb_pos_;
-    kinematics::TranslationMatrix lm_limb_pos_;
-    kinematics::TranslationMatrix lf_limb_pos_;
+  //Step lift height
+  kinematics::MatrixValue_t step_lift_;
 
-    kinematics::TranslationMatrix rr_limb_pos_;
-    kinematics::TranslationMatrix rm_limb_pos_;
-    kinematics::TranslationMatrix rf_limb_pos_;
+  //Current positions for all limb end points.
+  Pose current_pose_;
 
-    kinematics::TransformationMatrix update_endpoint()
+  //Initial position for all limb end points. Beginning of step.
+  Pose start_pose_;
+
+  //Destination position for all limb end points. End of step.
+  Pose dest_pose_;
+  typedef   std::vector< std::vector<bool> > pattern_t;
+  typedef   std::vector< std::vector<bool> >::iterator patternIter_t;
+
+  kinematics::TranslationMatrix direction_vector_;
+  kinematics::TranslationMatrix normalized_direction_vector_;
 
 
+  pattern_t pattern_;
+  size_t current_gait_cycle_step_;
+  int gait_cycle_direction_;
+  int gait_cycle_start_;
+
+  /**
+   * Method that centers the body in an appropriate position between all leg end points.
+   * Basically this is to allow the body to follow the legs when they move.
+   */
+  void center_body();
+  /**
+   * get_nex
+   */
+  kinematics::TranslationMatrix get_next_pos(const kinematics::TranslationMatrix &start, const kinematics::TranslationMatrix &end, const kinematics::TranslationMatrix &current);
 
 
 };
-
 
 #endif /* GAIT_H_ */
