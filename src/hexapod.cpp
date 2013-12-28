@@ -122,9 +122,14 @@ Hexapod::Hexapod() :
   set_center_offset(GRIPPER_PAN, -50 + 900);
 
   //Open and configure serial port
-  if(openSerialPort("/dev/rfcomm0") != -1)
+  std::string serial_dev = "/dev/rfcomm0";
+  if(openSerialPort(serial_dev) != -1)
   {
     configureSerialPort();
+  }
+  else
+  {
+    throw std::runtime_error("Failed to open serial port to Maestro on <" + serial_dev + ">");
   }
 
 //  kinematics::Matrix A(3,3);

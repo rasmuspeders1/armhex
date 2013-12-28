@@ -63,7 +63,7 @@ namespace kinematics
       }
 
       /**
-       * Norm method returns the p=2 norm aka the Frobenius norm aka the Hilbert–Schmidt norm
+       * Norm method returns the p=2 norm aka the Frobenius norm aka the Hilbert-Schmidt norm
        * norm = sqrt(a^2 + b^2 + c^2)
        */
       MatrixValue_t norm()
@@ -167,7 +167,7 @@ namespace kinematics
       {
         if(columns_ != other.columns_ || rows_ != other.rows_)
         {
-          throw matrix_operation_error("operator- called with matrices of invalid dimensions." + boost::lexical_cast<std::  string>(columns_) + " " + boost::lexical_cast<std::  string>(other.columns_) + " " + boost::lexical_cast<std::  string>(rows_) + " " + boost::lexical_cast<std::  string>(other.rows_));
+          throw matrix_operation_error("operator- called with matrices of invalid dimensions." + boost::lexical_cast<std::string>(columns_) + " " + boost::lexical_cast<std::string>(other.columns_) + " " + boost::lexical_cast<std::string>(rows_) + " " + boost::lexical_cast<std::string>(other.rows_));
         }
 
         //initialize output matrix

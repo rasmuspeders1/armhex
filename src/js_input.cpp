@@ -96,10 +96,10 @@ void JSInput::HandleAxisEvent(const js_event& event)
   //std::cout << "Handling axis event type number: " << int(event.number) << std::endl;
   switch (event.number) {
     case AXIS_R_STICK_X:
-      js_data_.gait_y = - event.value * (50.0)/32768.0;
+      js_data_.gait_y = - event.value * (30.0)/32768.0;
       break;
     case AXIS_R_STICK_Y:
-      js_data_.gait_x = - event.value * (50.0)/32768.0;
+      js_data_.gait_x = - event.value * (30.0)/32768.0;
       break;
     case AXIS_ROLL:
       if(js_data_.body_relative_rotation_enable)

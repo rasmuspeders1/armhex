@@ -33,7 +33,7 @@ Pose::~Pose()
 
 
 Gait::Gait():
-step_lift_(30.0), //Default step lift is 30 mm
+step_lift_(20.0), //Default step lift is 30 mm
 current_pose_(),
 start_pose_(),
 dest_pose_(),
@@ -75,12 +75,10 @@ void Gait::direction(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, k
   if(x < 0)
   {
     gait_cycle_direction_ = -1;
-    std::cout << "gait cycle reverse" << std::endl;
   }
   else
   {
     gait_cycle_direction_ = 1;
-    std::cout << "gait cycle forward" << std::endl;
   }
 
   if(y < 0)
@@ -92,19 +90,30 @@ void Gait::direction(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, k
     gait_cycle_start_ = 0;
   }
 
-  if(direction_vector_.norm() > 0)
+//  if(direction_vector_.norm() > 0)
+//  {
+//    direction_vector_ = (direction_vector_ / direction_vector_.norm()) * 50.0;
+//  }
+
+  if(direction_vector_.norm() < 1.0)
   {
-    direction_vector_ = (direction_vector_ / direction_vector_.norm()) * 50.0;
+    return;
   }
 
   //Limb destination end points are the end point positions at the start if the gait cycle translated and rotated according to the input
   kinematics::BasicTransformationMatrix endpoint_transform(direction_vector_[0][0], direction_vector_[1][0], 0.0, 0.0, 0.0, yaw);
-  dest_pose_.lf_limb_pos_ = endpoint_transform * start_pose_.lf_limb_pos_;
-  dest_pose_.lm_limb_pos_ = endpoint_transform * start_pose_.lm_limb_pos_;
-  dest_pose_.lr_limb_pos_ = endpoint_transform * start_pose_.lr_limb_pos_;
-  dest_pose_.rf_limb_pos_ = endpoint_transform * start_pose_.rf_limb_pos_;
-  dest_pose_.rm_limb_pos_ = endpoint_transform * start_pose_.rm_limb_pos_;
-  dest_pose_.rr_limb_pos_ = endpoint_transform * start_pose_.rr_limb_pos_;
+  kinematics::TranslationMatrix body_pos(start_pose_.body_x_, start_pose_.body_y_, start_pose_.body_z_);
+  body_pos[3][0] = 0;
+
+  Pose default_pose;
+
+  dest_pose_.lf_limb_pos_ = endpoint_transform * (default_pose.lf_limb_pos_ + body_pos);
+  dest_pose_.lm_limb_pos_ = endpoint_transform * (default_pose.lm_limb_pos_ + body_pos);
+  dest_pose_.lr_limb_pos_ = endpoint_transform * (default_pose.lr_limb_pos_ + body_pos);
+  dest_pose_.rf_limb_pos_ = endpoint_transform * (default_pose.rf_limb_pos_ + body_pos);
+  dest_pose_.rm_limb_pos_ = endpoint_transform * (default_pose.rm_limb_pos_ + body_pos);
+  dest_pose_.rr_limb_pos_ = endpoint_transform * (default_pose.rr_limb_pos_ + body_pos);
+
 
 }
 
@@ -120,30 +129,96 @@ Pose Gait::target()
   if(still && old_gait_cycle_direction != gait_cycle_direction_)
   {
     std::cout << "Gait cycle reverse!" << std::endl;
-    if(gait_cycle_direction_ > 0)
-    {
-      if(current_gait_cycle_step_ == (pattern_.size() - 1))
-      {
-        current_gait_cycle_step_ = 0;
-      }
-      else
-      {
-        current_gait_cycle_step_ += 1;
-      }
-    }
-    else
-    {
-      if(current_gait_cycle_step_ == 0)
-      {
-        current_gait_cycle_step_ = pattern_.size()-1;
-      }
-      else
-      {
-        current_gait_cycle_step_ -= 1;
-      }
-    }
+//    if(gait_cycle_direction_ > 0)
+//    {
+//      if(current_gait_cycle_step_ == (pattern_.size() - 1))
+//      {
+//        current_gait_cycle_step_ = 0;
+//      }
+//      else
+//      {
+//        current_gait_cycle_step_ += 1;
+//      }
+//    }
+//    else
+//    {
+//      if(current_gait_cycle_step_ == 0)
+//      {
+//        current_gait_cycle_step_ = pattern_.size()-1;
+//      }
+//      else
+//      {
+//        current_gait_cycle_step_ -= 1;
+//      }
+//    }
+    old_gait_cycle_direction = gait_cycle_direction_;
   }
 
+  kinematics::MatrixValue_t end_point_min_dist = 50.0;
+
+  if(gait_cycle_direction_ == 1)
+  {
+    kinematics::TranslationMatrix lm_lf_vec = current_pose_.lf_limb_pos_ - dest_pose_.lm_limb_pos_;
+    while(lm_lf_vec.norm() < end_point_min_dist)
+    {
+      std::cout << "limiting dest" << std::endl;
+      dest_pose_.lm_limb_pos_ = dest_pose_.lm_limb_pos_ - (lm_lf_vec / lm_lf_vec.norm());
+      lm_lf_vec = current_pose_.lf_limb_pos_ - dest_pose_.lm_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix lr_lm_vec = current_pose_.lm_limb_pos_ - dest_pose_.lr_limb_pos_;
+    while(lr_lm_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.lr_limb_pos_ = dest_pose_.lr_limb_pos_ - (lr_lm_vec / lr_lm_vec.norm());
+      lr_lm_vec = current_pose_.lm_limb_pos_ - dest_pose_.lr_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix rm_rf_vec = current_pose_.rf_limb_pos_ - dest_pose_.rm_limb_pos_;
+    while(rm_rf_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.rm_limb_pos_ = dest_pose_.rm_limb_pos_ - (rm_rf_vec / rm_rf_vec.norm());
+      rm_rf_vec = current_pose_.rf_limb_pos_ - dest_pose_.rm_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix rr_rm_vec = current_pose_.rm_limb_pos_ - dest_pose_.rr_limb_pos_;
+    while(rr_rm_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.rr_limb_pos_ = dest_pose_.rr_limb_pos_ - (rr_rm_vec / rr_rm_vec.norm());
+      rr_rm_vec = current_pose_.rm_limb_pos_ - dest_pose_.rr_limb_pos_;
+    }
+
+  }
+  else if(gait_cycle_direction_ == -1)
+  {
+    kinematics::TranslationMatrix lm_lr_vec = current_pose_.lr_limb_pos_ - dest_pose_.lm_limb_pos_;
+    while(lm_lr_vec.norm() < end_point_min_dist)
+    {
+      std::cout << "limiting dest" << std::endl;
+      dest_pose_.lm_limb_pos_ = dest_pose_.lm_limb_pos_ - (lm_lr_vec / lm_lr_vec.norm());
+      lm_lr_vec = current_pose_.lr_limb_pos_ - dest_pose_.lm_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix lf_lm_vec = current_pose_.lm_limb_pos_ - dest_pose_.lf_limb_pos_;
+    while(lf_lm_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.lf_limb_pos_ = dest_pose_.lf_limb_pos_ - (lf_lm_vec / lf_lm_vec.norm());
+      lf_lm_vec = current_pose_.lm_limb_pos_ - dest_pose_.lf_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix rm_rr_vec = current_pose_.rr_limb_pos_ - dest_pose_.rm_limb_pos_;
+    while(rm_rr_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.rm_limb_pos_ = dest_pose_.rm_limb_pos_ - (rm_rr_vec / rm_rr_vec.norm());
+      rm_rr_vec = current_pose_.rr_limb_pos_ - dest_pose_.rm_limb_pos_;
+    }
+
+    kinematics::TranslationMatrix rf_rm_vec = current_pose_.rm_limb_pos_ - dest_pose_.rf_limb_pos_;
+    while(rf_rm_vec.norm() < end_point_min_dist)
+    {
+      dest_pose_.rf_limb_pos_ = dest_pose_.rf_limb_pos_ - (rf_rm_vec / rf_rm_vec.norm());
+      rf_rm_vec = current_pose_.rm_limb_pos_ - dest_pose_.rf_limb_pos_;
+    }
+  }
 
 
   if(pattern_[current_gait_cycle_step_][0])
@@ -249,6 +324,7 @@ Pose Gait::target()
 
   if(increment_cycle)
   {
+    start_pose_ = current_pose_;
     std::cout << "Gait cycle to step: " << current_gait_cycle_step_ << "\nGait cycle direction: " << (gait_cycle_direction_ > 0 ? "Forward" : "Reverse") << std::endl;
     if(gait_cycle_direction_ > 0)
     {
