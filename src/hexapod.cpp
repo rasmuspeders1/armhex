@@ -132,55 +132,6 @@ Hexapod::Hexapod() :
     throw std::runtime_error("Failed to open serial port to Maestro on <" + serial_dev + ">");
   }
 
-//  kinematics::Matrix A(3,3);
-//  kinematics::Matrix B(3,3);
-//  kinematics::Matrix C(3,1);
-//
-//  A[0][0] = 1;
-//  A[0][1] = 2;
-//  A[0][2] = 3;
-//
-//  A[1][0] = 4;
-//  A[1][1] = 5;
-//  A[1][2] = 6;
-//
-//  A[2][0] = 7;
-//  A[2][1] = 8;
-//  A[2][2] = 9;
-//
-//  B[0][0] = 1;
-//  B[0][1] = 2;
-//  B[0][2] = 3;
-//
-//  B[1][0] = 4;
-//  B[1][1] = 5;
-//  B[1][2] = 6;
-//
-//  B[2][0] = 7;
-//  B[2][1] = 8;
-//  B[2][2] = 9;
-//
-//  C[0][0] = 1;
-//  C[1][0] = 2;
-//  C[2][0] = 3;
-//
-//  (A*B).print();
-//  (A*C).print();
-
-//body_.update_transformation_matrix(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);
-
-//lm_leg_.InverseKinematic(50, 90, 0);
-
-//body_.update_transformation_matrix(0.0, 0.0, 0.0, -10.0, 0.0, 0.0);
-
-  //lf_leg_.InverseKinematic(85.0, 75.0, 0.0);
-//  lm_leg_.InverseKinematic(0.0, 90.0, 0.0);
-//  lr_leg_.InverseKinematic(-85.0, 75.0, 0.0);
-//
-//  rf_leg_.InverseKinematic(85.0, -75.0, 0.0);
-//  rm_leg_.InverseKinematic(0.0, -90.0, 0.0);
-//  rr_leg_.InverseKinematic(-85.0, -75.0, 0.0);
-
   setGroupPositions(0, get_all_leg_servo_angles());
 
 }
@@ -236,16 +187,19 @@ void Hexapod::UpdateInput()
 
   if(js_input_.GetJSInput(js_data))
   {
-//    std::cout <<  "Got joystick input:"
-//        << "\nGait X:  " << js_data.gait_x
-//        << "\nGait Y:  " << js_data.gait_y
-//        << "\nBody relative roll:  " << js_data.body_relative_roll
-//        << "\nBody relative pitch: " << js_data.body_relative_pitch
-//        << "\nBody relative yaw:   " << js_data.body_relative_yaw
-//        << "\nBody relative x:   " << js_data.body_relative_x
-//        << "\nBody relative y:   " << js_data.body_relative_y
-//        << "\nBody relative z:   " << js_data.body_relative_z
-//        << std::endl;
+    std::cout <<  "Got joystick input:"
+        << "\nGait X:  " << js_data.gait_x
+        << "\nGait Y:  " << js_data.gait_y
+        << "\nGait Yaw:  " << js_data.gait_yaw
+        << "\nBody relative roll:  " << js_data.body_relative_roll
+        << "\nBody relative pitch: " << js_data.body_relative_pitch
+        << "\nBody relative yaw:   " << js_data.body_relative_yaw
+        << "\nBody relative x:   " << js_data.body_relative_x
+        << "\nBody relative y:   " << js_data.body_relative_y
+        << "\nBody relative z:   " << js_data.body_relative_z
+        << "\nGripper Angle:   " << js_data.gripper_pan
+        << "\nGrip:   " << js_data.grip
+        << std::endl;
   }
 
   if(js_data.standby)
@@ -263,54 +217,9 @@ void Hexapod::UpdateInput()
     standing_by = false;
   }
 
-//  kinematics::MatrixValue_t body_roll = js_data.body_relative_roll;
-//  kinematics::MatrixValue_t abs_roll_diff = fabs(js_data.body_relative_roll - body_.roll());
-
-//  if(abs_roll_diff > BODY_RELATIVE_ROTATION_STEP)
-//  {
-//    body_roll = body_.roll() + (js_data.body_relative_roll - body_.roll()) * (BODY_RELATIVE_ROTATION_STEP / abs_roll_diff);
-//  }
-
-//  kinematics::MatrixValue_t body_pitch = js_data.body_relative_pitch;
-//  kinematics::MatrixValue_t abs_pitch_diff = fabs(js_data.body_relative_pitch - body_.pitch());
-
-//  if(abs_pitch_diff > BODY_RELATIVE_ROTATION_STEP)
-//  {
-//    body_pitch = body_.pitch() + (js_data.body_relative_pitch - body_.pitch()) * (BODY_RELATIVE_ROTATION_STEP / abs_pitch_diff);
-//  }
-
-//  kinematics::MatrixValue_t body_yaw = js_data.body_relative_yaw;
-//  kinematics::MatrixValue_t abs_yaw_diff = fabs(js_data.body_relative_yaw - body_.yaw());
-
-//  if(abs_yaw_diff > BODY_RELATIVE_ROTATION_STEP)
-//  {
-//    body_yaw = body_.yaw() + (js_data.body_relative_yaw - body_.yaw()) * (BODY_RELATIVE_ROTATION_STEP / abs_yaw_diff);
-//  }
-//
-//  kinematics::MatrixValue_t body_x = js_data.body_relative_x;
-//  kinematics::MatrixValue_t abs_x_diff = fabs(js_data.body_relative_x - body_.x());
-//
-//  if(abs_x_diff > BODY_RELATIVE_TRANSLATION_STEP)
-//  {
-//    body_x = body_.x() + (js_data.body_relative_x - body_.x()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_x_diff);
-//  }
-//
-//  kinematics::MatrixValue_t body_y = js_data.body_relative_y;
-//  kinematics::MatrixValue_t abs_y_diff = fabs(js_data.body_relative_y - body_.y());
-//
-//  if(abs_y_diff > BODY_RELATIVE_TRANSLATION_STEP)
-//  {
-//    body_y = body_.y() + (js_data.body_relative_y - body_.y()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_y_diff);
-//  }
-//
-//  kinematics::MatrixValue_t body_z = js_data.body_relative_z;
-//  kinematics::MatrixValue_t abs_z_diff = fabs(js_data.body_relative_z - body_.z());
-//
-//  if(abs_z_diff > BODY_RELATIVE_TRANSLATION_STEP)
-//  {
-//    body_z = body_.z() + (js_data.body_relative_z - body_.z()) * (BODY_RELATIVE_TRANSLATION_STEP / abs_z_diff);
-//  }
-  gait_.direction(js_data.gait_x, js_data.gait_y, 0.0);
+  gait_.direction(js_data.gait_x, js_data.gait_y, js_data.gait_yaw);
+  gait_.body_relative_position(js_data.body_relative_x, js_data.body_relative_y, js_data.body_relative_z+20);
+  gait_.body_relative_rotation(js_data.body_relative_roll / (180.0 / M_PI), js_data.body_relative_pitch / (180.0 / M_PI), js_data.body_relative_yaw / (180.0 / M_PI));
   Pose target;
   try
   {
@@ -321,7 +230,7 @@ void Hexapod::UpdateInput()
     std::cout << "gait_.target() failed with: " << e.what();
     abort();
   }
-  body_.update_transformation_matrix(target.body_roll_, target.body_pitch_, target.body_yaw_, target.body_x_, target.body_y_, 20.0);
+  body_.update_transformation_matrix(target.body_roll_, target.body_pitch_, target.body_yaw_, target.body_x_, target.body_y_, target.body_z_);
 
 
   lf_leg_.InverseKinematic(target.lf_limb_pos_);
@@ -333,6 +242,7 @@ void Hexapod::UpdateInput()
   rr_leg_.InverseKinematic(target.rr_limb_pos_);
 
   setGroupPositions(0, get_all_leg_servo_angles());
+  set_grip(0, js_data.grip/ (180.0 / M_PI));
 
 }
 
@@ -366,4 +276,12 @@ std::vector<double> Hexapod::get_all_leg_servo_angles()
   servo_positions[rf_tibia_link_.get_servo_addr()] = rf_tibia_link_.theta();
 
   return servo_positions;
+}
+
+void Hexapod::set_grip(double angle, double grip)
+{
+  std::vector<double> grip_positions;
+  grip_positions.push_back(angle);
+  grip_positions.push_back(grip);
+  setGroupPositions(GRIPPER_PAN, grip_positions);
 }

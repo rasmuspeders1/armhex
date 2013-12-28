@@ -65,6 +65,8 @@ struct JSData_t
     float gait_y;
     float gait_z;
 
+    float gait_yaw;
+
     bool body_relative_translation_enable;
     float body_relative_x;
     float body_relative_y;
@@ -75,20 +77,26 @@ struct JSData_t
     float body_relative_pitch;
     float body_relative_yaw;
 
+    float gripper_pan;
+    float grip;
+
     bool standby;
 
     JSData_t():
       gait_x(0),
       gait_y(0),
       gait_z(0),
+      gait_yaw(0),
       body_relative_translation_enable(false),
       body_relative_x(0),
       body_relative_y(0),
-      body_relative_z(0),
+      body_relative_z(0.0),
       body_relative_rotation_enable(false),
       body_relative_roll(0),
       body_relative_pitch(0),
       body_relative_yaw(0),
+      gripper_pan(0),
+      grip(0),
       standby(false)
     {    }
 

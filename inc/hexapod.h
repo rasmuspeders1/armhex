@@ -30,6 +30,8 @@ class Hexapod : public MaestroController
 
     bool check_maestro_errors();
 
+    void set_grip(double angle, double grip);
+
     /**
      * Read any input from joystick and take appropriate action.
      */

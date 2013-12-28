@@ -96,10 +96,40 @@ void JSInput::HandleAxisEvent(const js_event& event)
   //std::cout << "Handling axis event type number: " << int(event.number) << std::endl;
   switch (event.number) {
     case AXIS_R_STICK_X:
-      js_data_.gait_y = - event.value * (30.0)/32768.0;
+      if(js_data_.body_relative_translation_enable)
+      {
+        js_data_.body_relative_y = - event.value * (30.0)/32768.0;
+      }
+      else
+      {
+        js_data_.gait_y = - event.value * (30.0)/32768.0;
+      }
       break;
     case AXIS_R_STICK_Y:
-      js_data_.gait_x = - event.value * (30.0)/32768.0;
+      if(js_data_.body_relative_translation_enable)
+      {
+        js_data_.body_relative_x = - event.value * (30.0)/32768.0;
+      }
+      else
+      {
+        js_data_.gait_x = - event.value * (30.0)/32768.0;
+      }
+      break;
+    case AXIS_L_STICK_X:
+      if(js_data_.body_relative_translation_enable)
+      {
+        js_data_.body_relative_roll = - event.value * (10.0)/32768.0;
+      }
+      else
+      {
+        js_data_.gait_yaw = - event.value * (0.12*M_PI)/32768.0;
+      }
+      break;
+    case AXIS_L_STICK_Y:
+      if(js_data_.body_relative_translation_enable)
+      {
+        js_data_.body_relative_pitch= - event.value * (10.0)/32768.0;
+      }
       break;
     case AXIS_ROLL:
       if(js_data_.body_relative_rotation_enable)
@@ -114,8 +144,10 @@ void JSInput::HandleAxisEvent(const js_event& event)
       }
       break;
     case AXIS_R2:
-      js_data_.body_relative_z = event.value  * 50.0/32768.0;
+      js_data_.body_relative_z = event.value  * 30.0/32768.0 + 30.0;
       break;
+    case AXIS_L2:
+      js_data_.grip = - event.value  * 45.0/32768.0 + 45.0;
       break;
     default:
       break;
@@ -126,13 +158,24 @@ void JSInput::HandleButtonEvent(const js_event& event)
 {
   //std::cout << "Handling bntton event type number: " << int(event.number) << std::endl;
   switch (event.number) {
-    case BUTTON_R1:
+    case BUTTON_L1:
           js_data_.body_relative_rotation_enable = event.value;
           break;
-    case BUTTON_L1:
+    case BUTTON_R1:
           js_data_.body_relative_translation_enable = event.value;
+          if(js_data_.body_relative_translation_enable)
+          {
+            js_data_.body_relative_x = 0;
+            js_data_.body_relative_y = 0;
+          }
           break;
     case BUTTON_PS:
+      if(event.value)
+      {
+        js_data_.standby = !js_data_.standby;
+      }
+      break;
+    case BUTTON_CROSS:
       if(event.value)
       {
         js_data_.standby = !js_data_.standby;

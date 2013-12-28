@@ -289,14 +289,6 @@ bool MaestroController::setGroupPositions(uint8_t startAddr,
   unsigned int commandArraySize = 5 + positions.size() * 2;
 
   //First byte is command type
-  //cmdBuf[0] = 0x9F;
-
-  //second byte is number of targets
-  //cmdBuf[1] = positions.size();
-
-  //cmdBuf[2] = startAddr;
-
-  //First byte is command type
   serial_buffer_[0] = 0xAA;
 
   //second byte is pololu device number

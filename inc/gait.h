@@ -20,6 +20,11 @@ class Pose
   Pose();
   virtual ~Pose();
 
+  kinematics::TranslationMatrix GetBodyPos();
+  void SetBodyPos(const kinematics::TranslationMatrix body_pos);
+
+  void Print();
+
   kinematics::MatrixValue_t body_x_;
   kinematics::MatrixValue_t body_y_;
   kinematics::MatrixValue_t body_z_;
@@ -54,11 +59,17 @@ class Gait
    * x,y indicates the translation direction and the yaw indicates the turning
    * norm of x,y vector determines step length
    */
-   void direction(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, kinematics::MatrixValue_t yaw);
+  void direction(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, kinematics::MatrixValue_t yaw);
+
+   /**
+    * Sets the body translation relative to the limb polygon center
+    */
+  void body_relative_position(kinematics::MatrixValue_t x, kinematics::MatrixValue_t y, kinematics::MatrixValue_t z);
+  void body_relative_rotation(kinematics::MatrixValue_t roll, kinematics::MatrixValue_t pitch, kinematics::MatrixValue_t yaw);
 
   /**
    * Returns the current gait target pose
-   * This will change as the gait cycles along and the steps are executed aswell as when the input is changed.
+   * This will change as the gait cycles along and the steps are executed as well as when the input is changed.
    */
   Pose target();
 
@@ -87,6 +98,15 @@ class Gait
   int gait_cycle_direction_;
   int gait_cycle_start_;
 
+  kinematics::MatrixValue_t body_relative_x_;
+  kinematics::MatrixValue_t body_relative_y_;
+  kinematics::MatrixValue_t body_relative_z_;
+
+  kinematics::MatrixValue_t body_relative_roll_;
+  kinematics::MatrixValue_t body_relative_pitch_;
+  kinematics::MatrixValue_t body_relative_yaw_;
+
+
   /**
    * Method that centers the body in an appropriate position between all leg end points.
    * Basically this is to allow the body to follow the legs when they move.
@@ -95,7 +115,7 @@ class Gait
   /**
    * get_nex
    */
-  kinematics::TranslationMatrix get_next_pos(const kinematics::TranslationMatrix &start, const kinematics::TranslationMatrix &end, const kinematics::TranslationMatrix &current);
+  kinematics::TranslationMatrix get_next_pos(kinematics::TranslationMatrix &start, const kinematics::TranslationMatrix &end, const kinematics::TranslationMatrix &current);
 
 
 };
