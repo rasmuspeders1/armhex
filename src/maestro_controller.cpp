@@ -25,7 +25,7 @@ MaestroController::MaestroController() :
     DP_RATIO_(1800.0 / M_PI),
     DP_OFFSET_(600),
     MAX_PULSE_WIDTH_(3000),
-    UPDATE_INTERVAL_NSECS_(20000000),
+    UPDATE_INTERVAL_NSECS_(10989010),
     serial_port_(""),
     serial_port_FD_(-1)
 {

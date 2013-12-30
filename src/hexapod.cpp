@@ -187,19 +187,19 @@ void Hexapod::UpdateInput()
 
   if(js_input_.GetJSInput(js_data))
   {
-    std::cout <<  "Got joystick input:"
-        << "\nGait X:  " << js_data.gait_x
-        << "\nGait Y:  " << js_data.gait_y
-        << "\nGait Yaw:  " << js_data.gait_yaw
-        << "\nBody relative roll:  " << js_data.body_relative_roll
-        << "\nBody relative pitch: " << js_data.body_relative_pitch
-        << "\nBody relative yaw:   " << js_data.body_relative_yaw
-        << "\nBody relative x:   " << js_data.body_relative_x
-        << "\nBody relative y:   " << js_data.body_relative_y
-        << "\nBody relative z:   " << js_data.body_relative_z
-        << "\nGripper Angle:   " << js_data.gripper_pan
-        << "\nGrip:   " << js_data.grip
-        << std::endl;
+//    std::cout <<  "Got joystick input:"
+//        << "\nGait X:  " << js_data.gait_x
+//        << "\nGait Y:  " << js_data.gait_y
+//        << "\nGait Yaw:  " << js_data.gait_yaw
+//        << "\nBody relative roll:  " << js_data.body_relative_roll
+//        << "\nBody relative pitch: " << js_data.body_relative_pitch
+//        << "\nBody relative yaw:   " << js_data.body_relative_yaw
+//        << "\nBody relative x:   " << js_data.body_relative_x
+//        << "\nBody relative y:   " << js_data.body_relative_y
+//        << "\nBody relative z:   " << js_data.body_relative_z
+//        << "\nGripper Angle:   " << js_data.gripper_pan
+//        << "\nGrip:   " << js_data.grip
+//        << std::endl;
   }
 
   if(js_data.standby)

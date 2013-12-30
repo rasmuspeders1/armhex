@@ -317,10 +317,10 @@ Pose Gait::target()
       }
     }
 
-    std::cout << "Gait cycle to step: " << current_gait_cycle_step_ << "\nGait cycle direction: " << (gait_cycle_direction_ > 0 ? "Forward" : "Reverse") << std::endl;
+    //std::cout << "Gait cycle to step: " << current_gait_cycle_step_ << "\nGait cycle direction: " << (gait_cycle_direction_ > 0 ? "Forward" : "Reverse") << std::endl;
   }
 
-  current_pose_.Print();
+  //current_pose_.Print();
   return current_pose_;
 }
 
@@ -389,8 +389,6 @@ void Gait::center_body()
                      + current_pose_.rf_limb_pos_[0][0])
                      / 6.0;
 
-  body_dest[0][0] += body_relative_x_;
-
 
   body_dest[1][0] = (current_pose_.lf_limb_pos_[1][0]
                          + current_pose_.lm_limb_pos_[1][0]
@@ -400,7 +398,6 @@ void Gait::center_body()
                          + current_pose_.rf_limb_pos_[1][0])
                          / 6.0;
 
-  body_dest[1][0] += body_relative_y_;
 
 //  //For now this is implemented as average of all leg end points
 //  body_dest[2][0] = (current_pose_.lf_limb_pos_[2][0]
@@ -411,19 +408,23 @@ void Gait::center_body()
 //                         + current_pose_.rf_limb_pos_[2][0])
 //                         / 6.0;
 
-  body_dest[2][0] += body_relative_z_;
 
-  //Scale of body dest must be zero
-  body_dest[3][0] = 0;
+  kinematics::BasicTransformationMatrix body_relative_transform(body_relative_x_, body_relative_y_, body_relative_z_, 0.0, 0.0, 0.0);
+  kinematics::BasicTransformationMatrix body_frame_tranform(current_pose_.body_x_, current_pose_.body_y_, current_pose_.body_z_, current_pose_.body_roll_, current_pose_.body_pitch_, current_pose_.body_yaw_);
+  kinematics::BasicTransformationMatrix relative_transform = body_frame_tranform * body_relative_transform * body_frame_tranform.InverseTransformation();
+  body_frame_tranform.Print();
+  relative_transform.Print();
+  body_dest = relative_transform * body_dest;
+  body_dest.Print();
 
   kinematics::TranslationMatrix current_body_pos = current_pose_.GetBodyPos();
+  //Scale of body dest must be zero
+  body_dest[3][0] = 0;
   //scale of body pos must also be zero
   current_body_pos[3][0] = 0;
 
   kinematics::TranslationMatrix body_dir_vec = body_dest - current_body_pos;
   kinematics::TranslationMatrix norm_body_dir_vec = body_dir_vec / body_dir_vec.norm();
-  std::cout << "Body DIR Vec" << std::endl;
-  norm_body_dir_vec.Print();
 
   if(body_dir_vec.norm() < 1.0)
   {
